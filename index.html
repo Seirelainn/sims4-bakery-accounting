@@ -4,15 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sims 4 Bakery Accounting</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app-container">
         
         <main id="view-dashboard" class="view active">
-            <div class="header">
-                <h1>Главная</h1>
-            </div>
             <div class="summary-cards">
                 <div class="card profit-card">
                     <span class="label">Чистая прибыль</span>
@@ -29,63 +27,107 @@
                     </div>
                 </div>
             </div>
-            <div class="history-list mt-4">
-                <h3>История транзакций</h3>
-                <div id="dashboard-history">
-                    </div>
+            
+            <div id="dashboard-content">
+                <div class="empty-state">
+                    <p>Начните вести учет прибыли! Расходы на продукты и доходы с продаж автоматически подтянутся из нужных разделов. Здесь вы можете вносить дополнительные расходы.</p>
+                </div>
+                <div id="dashboard-history" class="history-list"></div>
             </div>
-            <button class="btn btn-outline mt-4 w-full" onclick="openModal('modal-expense')">+ Внести расход</button>
+
+            <button class="fab" onclick="openModal('modal-expense')">
+                <i class="fas fa-plus"></i> Внести расход
+            </button>
         </main>
 
         <main id="view-purchases" class="view">
-            <div class="header">
-                <h1>Закупки</h1>
+            <h3>История закупок</h3>
+            <div id="purchases-content">
+                <div class="empty-state">
+                    <p>Добавьте закупленные в магазине продукты.</p>
+                </div>
+                <div id="purchases-history" class="history-list"></div>
             </div>
-            <div id="purchases-history" class="history-list"></div>
-            <button class="btn btn-outline mt-4 w-full" onclick="openModal('modal-purchase')">+ Добавить закупку</button>
+            <button class="fab" onclick="openModal('modal-purchase')">
+                <i class="fas fa-plus"></i> Добавить закупку
+            </button>
         </main>
 
         <main id="view-warehouse" class="view">
-            <div class="header">
-                <h1>Склад</h1>
+            <h3>Остатки</h3>
+            <div id="warehouse-display">
+                <div class="empty-state" id="warehouse-empty-text">
+                    Здесь будут показаны остатки продуктов
+                </div>
+                <div id="warehouse-content" class="card mt-2"></div>
             </div>
-            <div class="tabs-header">
-                <button class="tab-btn active" onclick="switchSubTab('warehouse', 'products')">Продукты</button>
-                <button class="tab-btn" onclick="switchSubTab('warehouse', 'preps')">Заготовки</button>
-                <button class="tab-btn" onclick="switchSubTab('warehouse', 'dishes')">Блюда</button>
+
+            <div class="segmented-control-container">
+                <div class="segmented-control">
+                    <button class="segment-btn active" onclick="switchSubTab('products', this)">Продукты</button>
+                    <button class="segment-btn" onclick="switchSubTab('preps', this)">Заготовки</button>
+                    <button class="segment-btn" onclick="switchSubTab('dishes', this)">Блюда</button>
+                </div>
             </div>
-            <div id="warehouse-content" class="card mt-2">
-                 </div>
         </main>
 
         <main id="view-kitchen" class="view">
-            <div class="header">
-                <h1>Кухня</h1>
+            <h3>История приготовления</h3>
+            <div id="kitchen-content">
+                <div class="empty-state">
+                    <p>Добавьте приготовленные блюда или заготовки.</p>
+                </div>
+                <div id="kitchen-history" class="history-list"></div>
             </div>
-            <div id="kitchen-history" class="history-list"></div>
-            <button class="btn btn-outline mt-4 w-full" onclick="openModal('modal-cook')">+ Приготовить блюдо</button>
+            <div class="fab-group">
+                <button class="fab secondary" onclick="openModal('modal-prep')">
+                    <i class="fas fa-plus"></i> Создать заготовку
+                </button>
+                <button class="fab" onclick="openModal('modal-cook')">
+                    <i class="fas fa-plus"></i> Приготовить блюдо
+                </button>
+            </div>
         </main>
 
         <main id="view-sales" class="view">
-            <div class="header">
-                <h1>Продажи</h1>
+            <h3>История продаж</h3>
+            <div id="sales-content">
+                <div class="empty-state">
+                    <p>Добавьте информацию о продаже блюд на ярмарке или в магазине.</p>
+                </div>
+                <div id="sales-history" class="history-list"></div>
             </div>
-            <div id="sales-history" class="history-list"></div>
-            <button class="btn btn-outline mt-4 w-full" onclick="openModal('modal-sale')">+ Добавить продажу</button>
+            <button class="fab" onclick="openModal('modal-sale')">
+                <i class="fas fa-plus"></i> Добавить продажу
+            </button>
         </main>
 
         <nav id="tab-bar">
-            <button class="nav-item active" onclick="switchView('view-dashboard', this)">Главная</button>
-            <button class="nav-item" onclick="switchView('view-purchases', this)">Закупки</button>
-            <button class="nav-item" onclick="switchView('view-warehouse', this)">Склад</button>
-            <button class="nav-item" onclick="switchView('view-kitchen', this)">Кухня</button>
-            <button class="nav-item" onclick="switchView('view-sales', this)">Продажи</button>
+            <button class="nav-item active" onclick="switchView('view-dashboard', this)">
+                <i class="fas fa-chart-pie"></i>
+                <span>Главная</span>
+            </button>
+            <button class="nav-item" onclick="switchView('view-purchases', this)">
+                <i class="fas fa-shopping-basket"></i>
+                <span>Закупки</span>
+            </button>
+            <button class="nav-item" onclick="switchView('view-warehouse', this)">
+                <i class="fas fa-boxes-stacked"></i>
+                <span>Склад</span>
+            </button>
+            <button class="nav-item" onclick="switchView('view-kitchen', this)">
+                <i class="fas fa-utensils"></i>
+                <span>Кухня</span>
+            </button>
+            <button class="nav-item" onclick="switchView('view-sales', this)">
+                <i class="fas fa-coins"></i>
+                <span>Продажи</span>
+            </button>
         </nav>
 
         <div id="modal-expense" class="modal-overlay">
             <div class="modal-content">
                 <h2>Новый расход</h2>
-                
                 <div class="form-group">
                     <label>Дата (Симс)</label>
                     <div class="date-inputs">
@@ -99,16 +141,14 @@
                         <input type="text" id="exp-cycle" placeholder="хх1" class="input">
                     </div>
                 </div>
-
                 <div class="form-group">
-                    <label>Объект (например, холодильник)</label>
+                    <label>Объект</label>
                     <input type="text" id="exp-desc" class="input w-full">
                 </div>
                 <div class="form-group">
                     <label>Сумма ($)</label>
                     <input type="number" id="exp-amount" class="input w-full">
                 </div>
-                
                 <div class="grid-2 mt-4">
                     <button class="btn btn-secondary" onclick="closeModal('modal-expense')">Отмена</button>
                     <button class="btn btn-primary" onclick="saveExpense()">Сохранить</button>
@@ -116,8 +156,7 @@
             </div>
         </div>
 
-        </div>
-
+    </div>
     <script src="app.js"></script>
 </body>
 </html>
