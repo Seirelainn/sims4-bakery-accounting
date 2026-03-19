@@ -129,7 +129,7 @@
             <div class="modal-content">
                 <h2>Новый расход</h2>
                 <div class="form-group">
-                    <label>Дата (Симс)</label>
+                    <label class="label-small">Дата (Симс)</label>
                     <div class="date-inputs">
                         <input type="number" id="exp-day" min="1" max="28" placeholder="ДД" class="input">
                         <select id="exp-season" class="input">
@@ -142,16 +142,145 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Объект</label>
-                    <input type="text" id="exp-desc" class="input w-full">
+                    <label class="label-small">Объект</label>
+                    <input type="text" id="exp-desc" placeholder="Холодильник" class="input w-full">
                 </div>
                 <div class="form-group">
-                    <label>Сумма ($)</label>
-                    <input type="number" id="exp-amount" class="input w-full">
+                    <label class="label-small">Сумма ($)</label>
+                    <input type="number" id="exp-amount" placeholder="0" class="input w-full">
                 </div>
                 <div class="grid-2 mt-4">
                     <button class="btn btn-secondary" onclick="closeModal('modal-expense')">Отмена</button>
                     <button class="btn btn-primary" onclick="saveExpense()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-purchase" class="modal-overlay">
+            <div class="modal-content">
+                <h2>Новая закупка</h2>
+                <div class="form-group">
+                    <label class="label-small">Дата</label>
+                    <div class="date-inputs">
+                        <input type="number" placeholder="ДД" class="input">
+                        <select class="input"><option>Весна</option><option>Лето</option><option>Осень</option><option>Зима</option></select>
+                        <input type="text" placeholder="хх1" class="input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="label-small">Продукты</label>
+                    <div id="purchase-items-container" class="dynamic-list"></div>
+                    <button class="text-btn mt-2" onclick="addPurchaseRow()">+ Добавить продукт</button>
+                </div>
+                <div class="form-group flex-between mt-2">
+                    <label><input type="checkbox" id="purchase-delivery"> Доставка 20$</label>
+                    <div class="total-text">Итого: <strong id="purchase-total">0 $</strong></div>
+                </div>
+                <div class="grid-2 mt-4">
+                    <button class="btn btn-secondary" onclick="closeModal('modal-purchase')">Отмена</button>
+                    <button class="btn btn-primary">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-prep" class="modal-overlay">
+            <div class="modal-content">
+                <h2>Создать заготовку</h2>
+                <div class="form-group">
+                    <label class="label-small">Название заготовки</label>
+                    <input type="text" class="input w-full" placeholder="Тесто">
+                </div>
+                <div class="form-group">
+                    <label class="label-small">Ингредиенты</label>
+                    <div class="table-header"><span>Название</span><span class="text-right">Единиц</span></div>
+                    <div id="prep-ingredients-container" class="dynamic-list"></div>
+                    <button class="text-btn mt-2" onclick="addIngredientRow('prep-ingredients-container')">+ Добавить ингредиент</button>
+                </div>
+                <div class="grid-2 mt-4">
+                    <button class="btn btn-secondary" onclick="closeModal('modal-prep')">Отмена</button>
+                    <button class="btn btn-primary">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-cook" class="modal-overlay">
+            <div class="modal-content">
+                <h2>Приготовить блюдо</h2>
+                <div class="form-group">
+                    <label class="label-small">Блюдо</label>
+                    <div class="select-with-btn">
+                        <select id="cook-dish-select" class="input w-full" onchange="handleDishSelection()">
+                            <option value="empty">Выберите блюдо...</option>
+                            <option value="new" class="text-accent">+ Создать новое блюдо</option>
+                        </select>
+                        <button id="btn-edit-dish" class="icon-btn hidden" onclick="openModal('modal-dish-edit')">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="cook-details" class="hidden">
+                    <div class="form-group">
+                        <label class="label-small">Рецепт</label>
+                        <select class="input w-full"><option>Загрузка рецептов...</option></select>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group"><label class="label-small">Качество</label>
+                            <select class="input w-full"><option>Великолепно</option><option>Нормально</option><option>Плохо</option></select>
+                        </div>
+                        <div class="form-group"><label class="label-small">Кол-во порций</label>
+                            <input type="number" class="input w-full" value="1">
+                        </div>
+                    </div>
+                </div>
+                <div class="grid-2 mt-4">
+                    <button class="btn btn-secondary" onclick="closeModal('modal-cook')">Отмена</button>
+                    <button class="btn btn-primary">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-dish-edit" class="modal-overlay" style="z-index: 250;">
+            <div class="modal-content">
+                <h2 id="dish-modal-title">Новое блюдо</h2>
+                <div class="form-group">
+                    <label class="label-small">Название блюда</label>
+                    <input type="text" id="dish-name-input" class="input w-full" placeholder="Название">
+                </div>
+                <div class="form-group">
+                    <label class="label-small">Рецепты</label>
+                    <div id="recipes-container"></div>
+                    <button class="text-btn mt-2" onclick="addRecipeCard()">+ Добавить рецепт</button>
+                </div>
+                <div class="grid-2 mt-4">
+                    <button class="btn btn-secondary" onclick="closeModal('modal-dish-edit')">Отмена</button>
+                    <button class="btn btn-primary" onclick="saveDishEdit()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-sale" class="modal-overlay">
+            <div class="modal-content">
+                <h2>Новая продажа</h2>
+                <div class="form-group">
+                    <label class="label-small">Дата</label>
+                    <div class="date-inputs">
+                        <input type="number" placeholder="ДД" class="input">
+                        <select class="input"><option>Весна</option><option>Лето</option><option>Осень</option><option>Зима</option></select>
+                        <input type="text" placeholder="хх1" class="input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="label-small">Тип продажи</label>
+                    <select class="input w-full"><option>Ярмарка</option><option>Магазин</option></select>
+                </div>
+                <div class="form-group">
+                    <label class="label-small">Проданные блюда</label>
+                    <div id="sale-items-container" class="dynamic-list"></div>
+                    <button class="text-btn mt-2" onclick="addSaleRow()">+ Добавить блюдо</button>
+                </div>
+                <div class="grid-2 mt-4">
+                    <button class="btn btn-secondary" onclick="closeModal('modal-sale')">Отмена</button>
+                    <button class="btn btn-primary">Сохранить</button>
                 </div>
             </div>
         </div>
