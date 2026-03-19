@@ -146,8 +146,10 @@
                     <input type="text" id="exp-desc" placeholder="Холодильник" class="input w-full">
                 </div>
                 <div class="form-group">
-                    <label class="label-small">Сумма ($)</label>
-                    <input type="number" id="exp-amount" placeholder="0" class="input w-full">
+                    <label class="label-small">Сумма</label>
+                    <div class="input-unit-wrapper" data-unit="$">
+                        <input type="number" id="exp-amount" placeholder="0" class="input w-full">
+                    </div>
                 </div>
                 <div class="grid-2 mt-4">
                     <button class="btn btn-secondary" onclick="closeModal('modal-expense')">Отмена</button>
@@ -162,9 +164,9 @@
                 <div class="form-group">
                     <label class="label-small">Дата</label>
                     <div class="date-inputs">
-                        <input type="number" placeholder="ДД" class="input">
-                        <select class="input"><option>Весна</option><option>Лето</option><option>Осень</option><option>Зима</option></select>
-                        <input type="text" placeholder="хх1" class="input">
+                        <input type="number" id="pur-day" placeholder="ДД" class="input">
+                        <select id="pur-season" class="input"><option>Весна</option><option>Лето</option><option>Осень</option><option>Зима</option></select>
+                        <input type="text" id="pur-cycle" placeholder="хх1" class="input">
                     </div>
                 </div>
                 <div class="form-group">
@@ -178,7 +180,7 @@
                 </div>
                 <div class="grid-2 mt-4">
                     <button class="btn btn-secondary" onclick="closeModal('modal-purchase')">Отмена</button>
-                    <button class="btn btn-primary">Сохранить</button>
+                    <button class="btn btn-primary" onclick="savePurchase()">Сохранить</button>
                 </div>
             </div>
         </div>
@@ -188,7 +190,7 @@
                 <h2>Создать заготовку</h2>
                 <div class="form-group">
                     <label class="label-small">Название заготовки</label>
-                    <input type="text" class="input w-full" placeholder="Тесто">
+                    <input type="text" id="prep-name" class="input w-full" placeholder="Например: Тесто">
                 </div>
                 <div class="form-group">
                     <label class="label-small">Ингредиенты</label>
@@ -198,7 +200,7 @@
                 </div>
                 <div class="grid-2 mt-4">
                     <button class="btn btn-secondary" onclick="closeModal('modal-prep')">Отмена</button>
-                    <button class="btn btn-primary">Сохранить</button>
+                    <button class="btn btn-primary" onclick="savePrep()">Сохранить</button>
                 </div>
             </div>
         </div>
@@ -221,20 +223,28 @@
                 <div id="cook-details" class="hidden">
                     <div class="form-group">
                         <label class="label-small">Рецепт</label>
-                        <select class="input w-full"><option>Загрузка рецептов...</option></select>
+                        <select id="cook-recipe-select" class="input w-full"><option>Загрузка...</option></select>
                     </div>
                     <div class="grid-2">
-                        <div class="form-group"><label class="label-small">Качество</label>
-                            <select class="input w-full"><option>Великолепно</option><option>Нормально</option><option>Плохо</option></select>
+                        <div class="form-group">
+                            <label class="label-small">Качество</label>
+                            <select id="cook-quality" class="input w-full">
+                                <option>Великолепно</option>
+                                <option>Нормально</option>
+                                <option>Плохо</option>
+                            </select>
                         </div>
-                        <div class="form-group"><label class="label-small">Кол-во порций</label>
-                            <input type="number" class="input w-full" value="1">
+                        <div class="form-group">
+                            <label class="label-small">Кол-во</label>
+                            <div class="input-unit-wrapper" data-unit="шт">
+                                <input type="number" id="cook-qty" class="input w-full" value="1">
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="grid-2 mt-4">
                     <button class="btn btn-secondary" onclick="closeModal('modal-cook')">Отмена</button>
-                    <button class="btn btn-primary">Сохранить</button>
+                    <button class="btn btn-primary" onclick="saveCooking()">Сохранить</button>
                 </div>
             </div>
         </div>
@@ -249,11 +259,11 @@
                 <div class="form-group">
                     <label class="label-small">Рецепты</label>
                     <div id="recipes-container"></div>
-                    <button class="text-btn mt-2" onclick="addRecipeCard()">+ Добавить рецепт</button>
+                    <button class="text-btn mt-2" onclick="addRecipeCard()">+ Добавить вариант рецепта</button>
                 </div>
                 <div class="grid-2 mt-4">
                     <button class="btn btn-secondary" onclick="closeModal('modal-dish-edit')">Отмена</button>
-                    <button class="btn btn-primary" onclick="saveDishEdit()">Сохранить</button>
+                    <button class="btn btn-primary" onclick="saveDishEdit()">Сохранить блюдо</button>
                 </div>
             </div>
         </div>
@@ -264,14 +274,14 @@
                 <div class="form-group">
                     <label class="label-small">Дата</label>
                     <div class="date-inputs">
-                        <input type="number" placeholder="ДД" class="input">
-                        <select class="input"><option>Весна</option><option>Лето</option><option>Осень</option><option>Зима</option></select>
-                        <input type="text" placeholder="хх1" class="input">
+                        <input type="number" id="sale-day" placeholder="ДД" class="input">
+                        <select id="sale-season" class="input"><option>Весна</option><option>Лето</option><option>Осень</option><option>Зима</option></select>
+                        <input type="text" id="sale-cycle" placeholder="хх1" class="input">
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="label-small">Тип продажи</label>
-                    <select class="input w-full"><option>Ярмарка</option><option>Магазин</option></select>
+                    <select id="sale-type" class="input w-full"><option>Ярмарка</option><option>Магазин</option></select>
                 </div>
                 <div class="form-group">
                     <label class="label-small">Проданные блюда</label>
@@ -280,7 +290,7 @@
                 </div>
                 <div class="grid-2 mt-4">
                     <button class="btn btn-secondary" onclick="closeModal('modal-sale')">Отмена</button>
-                    <button class="btn btn-primary">Сохранить</button>
+                    <button class="btn btn-primary" onclick="saveSale()">Сохранить</button>
                 </div>
             </div>
         </div>
