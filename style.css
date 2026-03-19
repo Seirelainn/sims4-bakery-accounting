@@ -173,3 +173,90 @@ h3 { font-size: 22px; font-weight: 800; margin-bottom: 20px; color: var(--text-m
     animation: slideUp 0.3s ease-out;
 }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* --- Стили для новых модалок (Figma Style) --- */
+
+/* Маленькие подписи над полями (как в Figma) */
+.label-small {
+    display: block;
+    font-size: 10px;
+    color: #808080;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+/* Строки с динамическим добавлением контента */
+.dynamic-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+}
+.dynamic-row .input { padding: 8px 10px; font-size: 13px; }
+
+/* Кнопка-текст (+ Добавить продукт) */
+.text-btn {
+    background: none;
+    border: none;
+    color: #808080;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 0;
+    text-align: right;
+    width: 100%;
+}
+.text-btn:hover { color: var(--text-main); }
+.text-accent { color: var(--accent); font-weight: bold; }
+
+/* Поле с кнопкой рядом (для блюда и карандаша) */
+.select-with-btn {
+    display: flex;
+    gap: 8px;
+}
+.icon-btn {
+    background: #f2f2f7;
+    border: none;
+    border-radius: 10px;
+    width: 44px;
+    color: var(--text-main);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.icon-btn:hover { background: #e5e5ea; }
+.hidden { display: none !important; }
+
+/* Карточка рецепта внутри модалки блюда */
+.recipe-card {
+    background: #f9f9fb;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+/* Таблицы информации о расходе (Figma) */
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #808080;
+    margin-bottom: 6px;
+    padding: 0 4px;
+}
+.info-table {
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+}
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+}
+.text-right { text-align: right; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.mb-2 { margin-bottom: 8px; }
