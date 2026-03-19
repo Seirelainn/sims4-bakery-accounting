@@ -58,14 +58,31 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 
 // --- ФУНКЦИИ ИНТЕРФЕЙСА МОДАЛОК ---
 
+// Создает поле с маской ($ или шт) внутри
+function createUnitInput(placeholder, unit, flex = 1) {
+    return `
+        <div class="input-unit-wrapper" style="flex: ${flex};" data-unit="${unit}">
+            <input type="number" class="input w-full" placeholder="${placeholder}">
+        </div>
+    `;
+}
+
+// --- ФУНКЦИИ ДОБАВЛЕНИЯ СТРОК (ДЛЯ КНОПОК "+") ---
+
 function addPurchaseRow() {
     const container = document.getElementById('purchase-items-container');
     const row = document.createElement('div');
     row.className = 'dynamic-row';
     row.innerHTML = `
-        <select class="input" style="flex: 2;"><option>Выберите продукт</option></select>
-        <input type="number" class="input" style="flex: 1;" placeholder="Кол-во">
-        <input type="number" class="input" style="flex: 1;" placeholder="Цена $">
+        <select class="input" style="flex: 2;">
+            <option value="">Продукт</option>
+            <option value="Мука">Мука</option>
+            <option value="Яйца">Яйца</option>
+            <option value="Сахар">Сахар</option>
+            <option value="Молоко">Молоко</option>
+        </select>
+        ${createUnitInput('Кол-во', 'шт')}
+        ${createUnitInput('Цена', '$')}
         <button class="icon-btn text-red" style="width: 36px;" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
     `;
     container.appendChild(row);
@@ -76,8 +93,8 @@ function addIngredientRow(containerId) {
     const row = document.createElement('div');
     row.className = 'dynamic-row';
     row.innerHTML = `
-        <select class="input" style="flex: 2;"><option>Продукт/Заготовка</option></select>
-        <input type="number" class="input" style="flex: 1;" placeholder="Ед.">
+        <select class="input" style="flex: 2;"><option value="">Ингредиент</option><option value="Мука">Мука</option></select>
+        ${createUnitInput('Ед.', 'шт')}
         <button class="icon-btn text-red" style="width: 36px;" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
     `;
     container.appendChild(row);
@@ -88,9 +105,9 @@ function addSaleRow() {
     const row = document.createElement('div');
     row.className = 'dynamic-row';
     row.innerHTML = `
-        <select class="input" style="flex: 2;"><option>Выберите блюдо</option></select>
-        <input type="number" class="input" style="flex: 1;" placeholder="Порц.">
-        <input type="number" class="input" style="flex: 1;" placeholder="Сумма $">
+        <select class="input" style="flex: 2;"><option value="">Блюдо</option></select>
+        ${createUnitInput('Порц.', 'шт')}
+        ${createUnitInput('Сумма', '$')}
         <button class="icon-btn text-red" style="width: 36px;" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
     `;
     container.appendChild(row);
@@ -126,7 +143,7 @@ function addRecipeCard() {
             <button class="icon-btn text-red ml-2" onclick="this.parentElement.parentElement.remove()"><i class="fas fa-trash"></i></button>
         </div>
         <div id="${listId}"></div>
-        <button class="text-btn mt-2" onclick="addIngredientRow('${listId}')">+ Ингредиент</button>
+        <button class="text-btn mt-2" onclick="addIngredientRow('${listId}')">+ Добавить ингредиент</button>
     `;
     container.appendChild(card);
 }
@@ -160,13 +177,71 @@ function saveExpense() {
 
     db.transactions.push(newExpense);
     console.log('Сохранен расход:', newExpense);
-    
+    updateUI();
     closeModal('modal-expense');
     
     // Скрываем empty state если есть данные (пример)
     document.querySelector('#view-dashboard .empty-state').style.display = 'none';
 }
 
-window.onload = () => {
-    console.log("Bakery Ledger Ready!");
-};
+// 2. Сохранение закупки
+function savePurchase() {
+    const rows = document.querySelectorAll('#purchase-items-container .dynamic-row');
+    let total = 0;
+    let itemsNames = [];
+
+    rows.forEach(row => {
+        const qty = parseFloat(row.querySelectorAll('input')[0].value);
+        const price = parseFloat(row.querySelectorAll('input')[1].value);
+        const name = row.querySelector('select').value;
+        if (name && qty && price) {
+            total += (qty * price);
+            itemsNames.push(name);
+        }
+    });
+
+    if (document.getElementById('purchase-delivery').checked) total += 20;
+
+    const entry = {
+        id: Date.now(),
+        type: 'расход',
+        description: `Закупка: ${itemsNames.join(', ')}`,
+        amount: -total,
+        date: `${document.getElementById('pur-day').value} ${document.getElementById('pur-season').value}`
+    };
+
+    db.transactions.push(entry);
+    updateUI();
+    closeModal('modal-purchase');
+}
+
+// --- ОБНОВЛЕНИЕ ИНТЕРФЕЙСА (РЕНДЕР) ---
+
+function updateUI() {
+    const historyContainer = document.getElementById('dashboard-history');
+    const totalProfitEl = document.getElementById('total-profit');
+    
+    let html = '';
+    let balance = 0;
+
+    // Идем по транзакциям с конца, чтобы новые были сверху
+    [...db.transactions].reverse().forEach(t => {
+        balance += t.amount;
+        const colorClass = t.amount >= 0 ? 'text-green' : 'text-red';
+        html += `
+            <div class="history-item">
+                <div>
+                    <div style="font-weight: 600;">${t.description}</div>
+                    <div style="font-size: 11px; color: #808080;">${t.date}</div>
+                </div>
+                <div class="${colorClass}">${t.amount} $</div>
+            </div>
+        `;
+    });
+
+    historyContainer.innerHTML = html;
+    totalProfitEl.innerText = `${balance} $`;
+}
+
+// Инициализация
+window.onload = updateUI;
