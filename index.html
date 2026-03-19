@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sims 4 Bakery Accounting</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-container">
+        
+        <main id="view-dashboard" class="view active">
+            <div class="header">
+                <h1>Главная</h1>
+            </div>
+            <div class="summary-cards">
+                <div class="card profit-card">
+                    <span class="label">Чистая прибыль</span>
+                    <h2 id="total-profit">0 $</h2>
+                </div>
+                <div class="grid-2">
+                    <div class="card">
+                        <span class="label">Доходы</span>
+                        <h3 id="total-income" class="text-green">0 $</h3>
+                    </div>
+                    <div class="card">
+                        <span class="label">Расходы</span>
+                        <h3 id="total-expense" class="text-red">0 $</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="history-list mt-4">
+                <h3>История транзакций</h3>
+                <div id="dashboard-history">
+                    </div>
+            </div>
+            <button class="btn btn-outline mt-4 w-full" onclick="openModal('modal-expense')">+ Внести расход</button>
+        </main>
+
+        <main id="view-purchases" class="view">
+            <div class="header">
+                <h1>Закупки</h1>
+            </div>
+            <div id="purchases-history" class="history-list"></div>
+            <button class="btn btn-outline mt-4 w-full" onclick="openModal('modal-purchase')">+ Добавить закупку</button>
+        </main>
+
+        <main id="view-warehouse" class="view">
+            <div class="header">
+                <h1>Склад</h1>
+            </div>
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="switchSubTab('warehouse', 'products')">Продукты</button>
+                <button class="tab-btn" onclick="switchSubTab('warehouse', 'preps')">Заготовки</button>
+                <button class="tab-btn" onclick="switchSubTab('warehouse', 'dishes')">Блюда</button>
+            </div>
+            <div id="warehouse-content" class="card mt-2">
+                 </div>
+        </main>
+
+        <main id="view-kitchen" class="view">
+            <div class="header">
+                <h1>Кухня</h1>
+            </div>
+            <div id="kitchen-history" class="history-list"></div>
+            <button class="btn btn-outline mt-4 w-full" onclick="openModal('modal-cook')">+ Приготовить блюдо</button>
+        </main>
+
+        <main id="view-sales" class="view">
+            <div class="header">
+                <h1>Продажи</h1>
+            </div>
+            <div id="sales-history" class="history-list"></div>
+            <button class="btn btn-outline mt-4 w-full" onclick="openModal('modal-sale')">+ Добавить продажу</button>
+        </main>
+
+        <nav id="tab-bar">
+            <button class="nav-item active" onclick="switchView('view-dashboard', this)">Главная</button>
+            <button class="nav-item" onclick="switchView('view-purchases', this)">Закупки</button>
+            <button class="nav-item" onclick="switchView('view-warehouse', this)">Склад</button>
+            <button class="nav-item" onclick="switchView('view-kitchen', this)">Кухня</button>
+            <button class="nav-item" onclick="switchView('view-sales', this)">Продажи</button>
+        </nav>
+
+        <div id="modal-expense" class="modal-overlay">
+            <div class="modal-content">
+                <h2>Новый расход</h2>
+                
+                <div class="form-group">
+                    <label>Дата (Симс)</label>
+                    <div class="date-inputs">
+                        <input type="number" id="exp-day" min="1" max="28" placeholder="ДД" class="input">
+                        <select id="exp-season" class="input">
+                            <option value="весна">Весна</option>
+                            <option value="лето">Лето</option>
+                            <option value="осень">Осень</option>
+                            <option value="зима">Зима</option>
+                        </select>
+                        <input type="text" id="exp-cycle" placeholder="хх1" class="input">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Объект (например, холодильник)</label>
+                    <input type="text" id="exp-desc" class="input w-full">
+                </div>
+                <div class="form-group">
+                    <label>Сумма ($)</label>
+                    <input type="number" id="exp-amount" class="input w-full">
+                </div>
+                
+                <div class="grid-2 mt-4">
+                    <button class="btn btn-secondary" onclick="closeModal('modal-expense')">Отмена</button>
+                    <button class="btn btn-primary" onclick="saveExpense()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+        </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
