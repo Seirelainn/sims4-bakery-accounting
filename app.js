@@ -56,6 +56,87 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
     });
 });
 
+// --- ФУНКЦИИ ИНТЕРФЕЙСА МОДАЛОК ---
+
+function addPurchaseRow() {
+    const container = document.getElementById('purchase-items-container');
+    const row = document.createElement('div');
+    row.className = 'dynamic-row';
+    row.innerHTML = `
+        <select class="input" style="flex: 2;"><option>Выберите продукт</option></select>
+        <input type="number" class="input" style="flex: 1;" placeholder="Кол-во">
+        <input type="number" class="input" style="flex: 1;" placeholder="Цена $">
+        <button class="icon-btn text-red" style="width: 36px;" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+    `;
+    container.appendChild(row);
+}
+
+function addIngredientRow(containerId) {
+    const container = document.getElementById(containerId);
+    const row = document.createElement('div');
+    row.className = 'dynamic-row';
+    row.innerHTML = `
+        <select class="input" style="flex: 2;"><option>Продукт/Заготовка</option></select>
+        <input type="number" class="input" style="flex: 1;" placeholder="Ед.">
+        <button class="icon-btn text-red" style="width: 36px;" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+    `;
+    container.appendChild(row);
+}
+
+function addSaleRow() {
+    const container = document.getElementById('sale-items-container');
+    const row = document.createElement('div');
+    row.className = 'dynamic-row';
+    row.innerHTML = `
+        <select class="input" style="flex: 2;"><option>Выберите блюдо</option></select>
+        <input type="number" class="input" style="flex: 1;" placeholder="Порц.">
+        <input type="number" class="input" style="flex: 1;" placeholder="Сумма $">
+        <button class="icon-btn text-red" style="width: 36px;" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+    `;
+    container.appendChild(row);
+}
+
+function handleDishSelection() {
+    const select = document.getElementById('cook-dish-select');
+    const editBtn = document.getElementById('btn-edit-dish');
+    const detailsBlock = document.getElementById('cook-details');
+
+    if (select.value === 'empty') {
+        editBtn.classList.add('hidden');
+        detailsBlock.classList.add('hidden');
+    } else if (select.value === 'new') {
+        select.value = 'empty';
+        openModal('modal-dish-edit');
+    } else {
+        editBtn.classList.remove('hidden');
+        detailsBlock.classList.remove('hidden');
+    }
+}
+
+let recipeCounter = 0;
+function addRecipeCard() {
+    recipeCounter++;
+    const container = document.getElementById('recipes-container');
+    const card = document.createElement('div');
+    card.className = 'recipe-card';
+    const listId = `recipe-${recipeCounter}-ingredients`;
+    card.innerHTML = `
+        <div class="flex-between mb-2">
+            <input type="text" class="input w-full" placeholder="Название рецепта">
+            <button class="icon-btn text-red ml-2" onclick="this.parentElement.parentElement.remove()"><i class="fas fa-trash"></i></button>
+        </div>
+        <div id="${listId}"></div>
+        <button class="text-btn mt-2" onclick="addIngredientRow('${listId}')">+ Ингредиент</button>
+    `;
+    container.appendChild(card);
+}
+
+function saveDishEdit() {
+    // Временная заглушка
+    alert('Блюдо сохранено в список!');
+    closeModal('modal-dish-edit');
+}
+
 // --- ЛОГИКА ---
 function saveExpense() {
     const day = document.getElementById('exp-day').value;
