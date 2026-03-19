@@ -79,6 +79,33 @@ h3 { font-size: 22px; font-weight: 800; margin-bottom: 20px; color: var(--text-m
     bottom: 160px; /* Выше основной */
 }
 
+/* Отступы между группами полей */
+.form-group {
+    margin-bottom: 16px; /* Увеличили отступ, чтобы не слипалось */
+}
+
+/* Стили для полей с единицами измерения ($ и шт) внутри */
+.input-unit-wrapper {
+    position: relative;
+    flex: 1;
+}
+
+.input-unit-wrapper input {
+    padding-right: 30px !important; /* Место для символа справа */
+    text-align: right;
+}
+
+.input-unit-wrapper::after {
+    content: attr(data-unit);
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #808080;
+    pointer-events: none; /* Чтобы символ не мешал кликать по полю */
+}
+
 /* Сегмент-панель (Склад) */
 .segmented-control-container {
     position: fixed;
@@ -152,6 +179,10 @@ h3 { font-size: 22px; font-weight: 800; margin-bottom: 20px; color: var(--text-m
 .profit-card { background: linear-gradient(135deg, #2c3e50, #000); color: white; border: none; }
 .profit-card .label { color: #bdc3c7; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-2.mt-4 {
+    margin-top: 24px;
+    gap: 12px;
+}
 .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 4px; }
 
 /* Формы */
@@ -188,8 +219,8 @@ h3 { font-size: 22px; font-weight: 800; margin-bottom: 20px; color: var(--text-m
 /* Строки с динамическим добавлением контента */
 .dynamic-row {
     display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 10px;
+    margin-bottom: 12px; /* Расстояние между строками продуктов */
     align-items: center;
 }
 .dynamic-row .input { padding: 8px 10px; font-size: 13px; }
