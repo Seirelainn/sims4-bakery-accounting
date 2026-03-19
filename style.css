@@ -45,10 +45,20 @@ h3 { font-size: 22px; font-weight: 800; margin-bottom: 20px; color: var(--text-m
 }
 
 /* Плавающие кнопки (FAB) */
-.fab {
+.fab-container {
     position: fixed;
+    bottom: 100px; /* Высота над таб-баром */
+    width: 100%;
+    max-width: 600px;
+    pointer-events: none; /* Чтобы контейнер не мешал кликать по списку под ним */
+    z-index: 90;
+}
+
+/* Сами кнопки теперь абсолютные относительно контейнера */
+.fab {
+    position: absolute;
     right: 20px;
-    bottom: 100px; /* Над таб-баром */
+    bottom: 0;
     background: var(--primary);
     color: white;
     padding: 14px 24px;
@@ -60,23 +70,32 @@ h3 { font-size: 22px; font-weight: 800; margin-bottom: 20px; color: var(--text-m
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    z-index: 90;
     font-size: 14px;
+    pointer-events: auto; /* Включаем клики обратно для кнопок */
 }
+
 .fab-group {
-    position: fixed;
+    position: absolute;
     right: 20px;
-    bottom: 100px;
+    bottom: 0;
     display: flex;
     flex-direction: column;
     gap: 10px;
     align-items: flex-end;
+    pointer-events: none;
 }
+
+.fab-group .fab {
+    position: relative; /* Внутри группы они идут друг за другом */
+    right: 0;
+    bottom: 0;
+    pointer-events: auto;
+}
+
 .fab.secondary {
     background: white;
     color: var(--primary);
     border: 1px solid var(--border);
-    bottom: 160px; /* Выше основной */
 }
 
 /* Отступы между группами полей */
