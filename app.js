@@ -1,30 +1,46 @@
-// --- БАЗА ДАННЫХ И СОСТОЯНИЕ (Подготовка под Google Apps Script) ---
-// В будущем эти данные мы будем подтягивать из Google Таблиц
+// --- БАЗА ДАННЫХ ---
 let db = {
-    transactions: [], // Главная: доходы/расходы
-    purchases: [],    // Закупки (с массивом продуктов внутри)
+    transactions: [],
+    purchases: [],
     warehouse: {
         products: [],
         preps: [],
         dishes: []
     },
-    kitchenHistory: [], // История готовки
-    salesHistory: []    // История продаж
+    kitchenHistory: [],
+    salesHistory: []
 };
 
-// --- НАВИГАЦИЯ ПО ВКЛАДКАМ ---
+// --- НАВИГАЦИЯ ---
 function switchView(viewId, navElement) {
-    // Скрываем все экраны
     document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-    // Показываем нужный
     document.getElementById(viewId).classList.add('active');
 
-    // Обновляем активную кнопку в меню
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     navElement.classList.add('active');
 }
 
-// --- УПРАВЛЕНИЕ МОДАЛЬНЫМИ ОКНАМИ ---
+// --- ПОД-ВКЛАДКИ СКЛАДА (Сегмент-панель) ---
+function switchSubTab(type, element) {
+    // Активный стиль кнопки
+    document.querySelectorAll('.segment-btn').forEach(btn => btn.classList.remove('active'));
+    element.classList.add('active');
+
+    // Меняем текст подсказки в зависимости от типа
+    const emptyText = document.getElementById('warehouse-empty-text');
+    const labels = {
+        'products': 'продуктов',
+        'preps': 'заготовок',
+        'dishes': 'блюд'
+    };
+    
+    emptyText.innerText = `Здесь будут показаны остатки ${labels[type]}`;
+    
+    // Здесь позже будет вызов отрисовки конкретной категории:
+    // renderWarehouse(type);
+}
+
+// --- МОДАЛКИ ---
 function openModal(modalId) {
     document.getElementById(modalId).classList.add('active');
 }
@@ -33,16 +49,14 @@ function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('active');
 }
 
-// Пример: Закрытие модалки при клике на темный фон
+// Закрытие по клику на фон
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', function(e) {
-        if (e.target === this) {
-            this.classList.remove('active');
-        }
+        if (e.target === this) closeModal(this.id);
     });
 });
 
-// --- БИЗНЕС-ЛОГИКА (Пример сохранения расхода) ---
+// --- ЛОГИКА ---
 function saveExpense() {
     const day = document.getElementById('exp-day').value;
     const season = document.getElementById('exp-season').value;
@@ -60,28 +74,18 @@ function saveExpense() {
         date: { day, season, cycle },
         type: 'расход',
         description: desc,
-        amount: -Math.abs(amount) // Расход всегда с минусом
+        amount: -Math.abs(amount)
     };
 
-    // Добавляем в локальную базу
     db.transactions.push(newExpense);
-    
-    // TODO: Здесь будет вызов Google Apps Script:
-    // google.script.run.withSuccessHandler(updateUI).addTransaction(newExpense);
-
     console.log('Сохранен расход:', newExpense);
     
-    // Закрываем окно и очищаем форму
     closeModal('modal-expense');
-    document.getElementById('exp-desc').value = '';
-    document.getElementById('exp-amount').value = '';
     
-    // Перерисовываем интерфейс (функцию напишем позже)
-    // renderDashboard();
+    // Скрываем empty state если есть данные (пример)
+    document.querySelector('#view-dashboard .empty-state').style.display = 'none';
 }
 
-// Инициализация при старте
 window.onload = () => {
-    console.log("Приложение загружено, готово к работе с Apps Script!");
-    // renderDashboard();
+    console.log("Bakery Ledger Ready!");
 };
