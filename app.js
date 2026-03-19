@@ -1,3 +1,10 @@
+// Инициализация иконок и навигации
+window.onload = () => {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+};
+
 // --- БАЗА ДАННЫХ И СОСТОЯНИЕ (Подготовка под Google Apps Script) ---
 // В будущем эти данные мы будем подтягивать из Google Таблиц
 let db = {
@@ -12,34 +19,52 @@ let db = {
     salesHistory: []    // История продаж
 };
 
-// --- НАВИГАЦИЯ ПО ВКЛАДКАМ ---
+// Функция переключения основных вкладок
 function switchView(viewId, navElement) {
-    // Скрываем все экраны
+    // Скрываем все вклады
     document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-    // Показываем нужный
+    // Показываем выбранную
     document.getElementById(viewId).classList.add('active');
 
-    // Обновляем активную кнопку в меню
+    // Меняем активную кнопку в меню
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     navElement.classList.add('active');
+    
+    // Перерисовываем иконки (на случай, если они внутри новых элементов)
+    lucide.createIcons();
+}
+
+// Функция переключения сегментов на Складе (Продукты/Заготовки/Блюда)
+function switchSubTab(targetId, btnElement) {
+    document.querySelectorAll('.subview').forEach(el => el.classList.remove('active'));
+    document.getElementById('subview-' + targetId).classList.add('active');
+
+    document.querySelectorAll('.seg-btn').forEach(el => el.classList.remove('active'));
+    btnElement.classList.add('active');
 }
 
 // --- УПРАВЛЕНИЕ МОДАЛЬНЫМИ ОКНАМИ ---
 function openModal(modalId) {
-    document.getElementById(modalId).classList.add('active');
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('active');
+    } else {
+        console.error('Модальное окно не найдено:', modalId);
+    }
 }
 
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('active');
+    }
 }
 
-// Пример: Закрытие модалки при клике на темный фон
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', function(e) {
-        if (e.target === this) {
-            this.classList.remove('active');
-        }
-    });
+// Закрытие при клике на темный фон
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal-overlay')) {
+        e.target.classList.remove('active');
+    }
 });
 
 // --- БИЗНЕС-ЛОГИКА (Пример сохранения расхода) ---
