@@ -381,10 +381,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Вставь сюда свой URL веб-приложения Google Apps Script
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbwOm53PfaVCnLFWEnEgo49Kvy3zOZtmNwdT_NLhSg2K3SaLTZBz2pwth8gANM3ksjbC/exec';
 
-        // --- БАЗА ДАННЫХ (теперь пустая по умолчанию) ---
         let db = {
             lastUsedDate: { day: 1, season: 0, cycle: 'xx1' },
             catalog: [], prepRecipes: [], dishRecipes: [],
@@ -395,7 +393,6 @@
         let currentStockCategory = 'products';
         let currentDishRecipeCardCount = 0;
 
-        // --- ИНДИКАТОР ЗАГРУЗКИ ---
         function toggleLoading(show) {
             let loader = document.getElementById('global-loader');
             if (!loader) {
@@ -410,7 +407,6 @@
             loader.style.display = show ? 'flex' : 'none';
         }
 
-        // --- СИНХРОНИЗАЦИЯ С GAS ---
         async function fetchDb() {
             toggleLoading(true);
             document.getElementById('loader-text').innerText = 'Загрузка данных...';
@@ -422,10 +418,7 @@
                     transIdCounter = Math.max(...db.transactions.map(t => t.id)) + 1;
                 }
                 
-                // --- ВОТ ЗДЕСЬ ДАННЫЕ УЖЕ ЕСТЬ ---
-                // Сначала очищаем контейнер (на случай, если там была пустая строка)
                 document.getElementById('purchase-rows-container').innerHTML = '';
-                // Теперь создаем строку — она увидит наполненный db.catalog
                 addPurchaseRow(); 
                 
                 updateUI();
@@ -443,17 +436,14 @@
                 await fetch(GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify(db),
-                    // mode: 'no-cors' // Раскомментируй если будут проблемы с CORS при локальном тестировании
                 });
             } catch (error) {
                 console.error('Ошибка сохранения:', error);
-                // При no-cors fetch всегда будет падать в catch с TypeError, это нормально
             } finally {
                 toggleLoading(false);
             }
         }
 
-        // --- УТИЛИТЫ ---
         const seasonNames = ["весна", "лето", "осень", "зима"];
         function getDateStr(d, s, c) {
             let day = d < 10 ? '0' + parseInt(d) : d;
@@ -488,7 +478,6 @@
             updateUI();
         }
 
-        // --- ЛОГИКА FIFO ---
         function simulateFIFO(name, qtyNeeded) {
             let cost = 0; let remaining = qtyNeeded;
             for(let i = 0; i < db.stock.length; i++) {
@@ -518,12 +507,11 @@
             return cost;
         }
 
-        // --- РАСХОД РУЧНОЙ (С РЕДАКТИРОВАНИЕМ) ---
         function openExpenseModal() {
             setModalDates('exp');
             document.getElementById('exp-name').value = '';
             document.getElementById('exp-amount').value = '';
-            delete document.getElementById('expenseModal').dataset.editId; // Очищаем статус редактирования
+            delete document.getElementById('expenseModal').dataset.editId;
         }
 
         function editExpense(id) {
@@ -542,7 +530,7 @@
             document.getElementById('exp-name').value = t.title;
             document.getElementById('exp-amount').value = t.amount;
             
-            document.getElementById('expenseModal').dataset.editId = id; // Запоминаем ID транзакции для сохранения
+            document.getElementById('expenseModal').dataset.editId = id; 
             bootstrap.Modal.getOrCreateInstance(document.getElementById('expenseModal')).show();
         }
 
@@ -559,7 +547,6 @@
             
             let editId = document.getElementById('expenseModal').dataset.editId;
             if (editId) {
-                // Если режим редактирования — обновляем существующую запись
                 let t = db.transactions.find(x => x.id == editId);
                 if(t) {
                     t.date = dateStr;
@@ -568,7 +555,6 @@
                 }
                 delete document.getElementById('expenseModal').dataset.editId;
             } else {
-                // Если новая запись
                 db.transactions.push({ id: transIdCounter++, date: dateStr, type: 'Расход', title: name, amount: amount, isManual: true });
             }
             
@@ -579,33 +565,38 @@
             updateUI();
         }
 
-        // --- ЗАКУПКИ ---
-        let purRowCount = 0;
         function addPurchaseRow() {
             const container = document.getElementById('purchase-rows-container');
             const row = document.createElement('div');
-            row.className = 'purchase-row row g-2 mb-2 align-items-center';
+            // FIX: изменен класс на pur-row
+            row.className = 'pur-row row g-2 mb-2 align-items-center';
             
-            // Генерируем опции для каталога динамически из db.catalog
             let catalogOptions = '<option value="" selected disabled>Выберите продукт</option>';
             db.catalog.forEach(item => {
                 catalogOptions += `<option value="${item.id}">${item.name}</option>`;
             });
         
+            // FIX: изменена разметка инпутов (добавлены input-group), обновлены классы и функции oninput
             row.innerHTML = `
-                <div class="col-6">
-                    <select class="form-select pur-item-select" required onchange="updatePurchaseTotal()">
+                <div class="col-5">
+                    <select class="form-select pur-item" required onchange="calcPurchaseTotal()">
                         ${catalogOptions}
                     </select>
                 </div>
-                <div class="col-2">
-                    <input type="number" class="form-control pur-qty" placeholder="Кол-во" min="1" value="1" required oninput="updatePurchaseTotal()">
+                <div class="col-3">
+                    <div class="input-group">
+                        <input type="number" class="form-control pur-qty" placeholder="Кол-во" min="1" value="1" required oninput="calcPurchaseTotal()">
+                        <span class="input-group-text small px-1">шт</span>
+                    </div>
                 </div>
                 <div class="col-3">
-                    <input type="number" class="form-control pur-price" placeholder="Цена" step="0.01" required oninput="updatePurchaseTotal()">
+                    <div class="input-group">
+                        <input type="number" class="form-control pur-price" placeholder="Цена" step="0.01" required oninput="calcPurchaseTotal()">
+                        <span class="input-group-text small px-1">$</span>
+                    </div>
                 </div>
                 <div class="col-1 text-end">
-                    <button type="button" class="btn btn-link text-danger p-0" onclick="this.closest('.row').remove(); updatePurchaseTotal();">
+                    <button type="button" class="btn btn-link text-danger p-0" onclick="this.closest('.row').remove(); calcPurchaseTotal();">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
@@ -617,12 +608,12 @@
             let total = 0;
             document.querySelectorAll('.pur-row').forEach(row => {
                 let sel = row.querySelector('.pur-item');
-                if(sel.value) { // Считаем только если продукт выбран
+                if(sel && sel.value) { 
                     total += (parseFloat(row.querySelector('.pur-qty').value)||0) * (parseFloat(row.querySelector('.pur-price').value)||0);
                 }
             });
             if(document.getElementById('pur-delivery').checked) total += 20;
-            document.getElementById('pur-total-sum').textContent = total;
+            document.getElementById('pur-total-sum').textContent = total.toFixed(2);
         }
 
         function savePurchase() {
@@ -637,7 +628,7 @@
             
             document.querySelectorAll('.pur-row').forEach(row => {
                 let sel = row.querySelector('.pur-item');
-                if(!sel.value) return; // Пропускаем пустые селекты
+                if(!sel || !sel.value) return; 
                 
                 let qty = parseFloat(row.querySelector('.pur-qty').value)||0;
                 let price = parseFloat(row.querySelector('.pur-price').value)||0;
@@ -653,7 +644,7 @@
 
             document.querySelectorAll('.pur-row').forEach(row => {
                 let sel = row.querySelector('.pur-item');
-                if(!sel.value) return;
+                if(!sel || !sel.value) return;
                 
                 let name = sel.options[sel.selectedIndex].text;
                 let qty = parseFloat(row.querySelector('.pur-qty').value)||0;
@@ -681,7 +672,6 @@
             updateUI();
         }
 
-        // --- КУХНЯ: ОБЩЕЕ СОЗДАНИЕ РЕЦЕПТОВ ---
         function getIngredientOptions() {
             let allItems = [...db.catalog.map(i=>i.name), ...db.prepRecipes.map(p=>p.name)];
             return '<option value="" disabled selected>Выберите ингредиент</option>' + allItems.map(n => `<option value="${n}">${n}</option>`).join('');
@@ -704,7 +694,6 @@
             bootstrap.Modal.getOrCreateInstance(document.getElementById(openId)).show();
         }
 
-        // --- КУХНЯ: ЗАГОТОВКИ ---
         function openPrepModal() {
             setModalDates('prep');
             updatePrepSelect();
@@ -812,7 +801,6 @@
             renderPrepRecipeView();
         }
 
-        // --- КУХНЯ: БЛЮДА ---
         function openDishModal() {
             setModalDates('dish');
             updateDishSelect();
@@ -965,8 +953,7 @@
             renderDishRecipeView();
         }
 
-        // --- КУХНЯ: СОХРАНЕНИЕ ГОТОВКИ ---
-        function saveKitchenAction(type) { // type = 'prep' | 'dish'
+        function saveKitchenAction(type) { 
             let d = document.getElementById(`${type}-day`).value || 10;
             let s = document.getElementById(`${type}-season`).value;
             let c = document.getElementById(`${type}-cycle`).value || 'xx1';
@@ -1016,7 +1003,6 @@
             updateUI();
         }
 
-        // --- ПРОДАЖИ ---
         let saleRowCount = 0;
         
         function openSaleModal() {
@@ -1027,7 +1013,6 @@
         
         function addSaleRow() {
             saleRowCount++;
-            // Ищем блюда, которые реально есть на складе
             let inStockDishes = [...new Set(db.stock.filter(s => s.category === 'dishes' && s.qty > 0).map(s => s.name))];
             let options = inStockDishes.map(d => `<option value="${d}">${d}</option>`).join('');
             
@@ -1064,7 +1049,6 @@
             validateSale();
         }
 
-        // Показывает, сколько выбраного блюда есть на складе
         function updateSaleRowMax(selectEl) {
             let row = selectEl.closest('.sale-row');
             let name = selectEl.value;
@@ -1074,14 +1058,13 @@
             
             if (name) {
                 let available = getStockQty(name);
-                maxSpan.textContent = available;
-                infoDiv.style.display = 'block';
-                qtyInput.max = available; // Устанавливаем атрибут max для стандартной валидации
+                if(maxSpan) maxSpan.textContent = available;
+                if(infoDiv) infoDiv.style.display = 'block';
+                qtyInput.max = available; 
             }
             validateSale();
         }
 
-        // Проверяет все строки и блокирует кнопку сохранения, если есть перебор
         function validateSale() {
             let isValid = true;
             let rows = document.querySelectorAll('.sale-row');
@@ -1094,17 +1077,14 @@
                 let input = row.querySelector('.sale-qty');
                 
                 if (name && qty > available) {
-                    input.classList.add('is-invalid'); // Подсвечиваем поле красным (Bootstrap)
+                    input.classList.add('is-invalid'); 
                     isValid = false;
                 } else {
                     input.classList.remove('is-invalid');
                 }
             });
             
-            // Блокируем кнопку сохранения, если валидация не прошла
             saveBtn.disabled = !isValid;
-            
-            // Заодно пересчитываем общую сумму
             calcSaleTotal();
         }
 
@@ -1116,7 +1096,7 @@
                     totalIncome += parseFloat(row.querySelector('.sale-price').value) || 0;
                 }
             });
-            document.getElementById('sale-total-sum').textContent = totalIncome;
+            document.getElementById('sale-total-sum').textContent = totalIncome.toFixed(2);
         }
 
         function saveSale() {
@@ -1142,7 +1122,7 @@
 
             document.querySelectorAll('.sale-row').forEach(row => {
                 let sel = row.querySelector('.sale-item');
-                if(!sel || !sel.value) return; // Пропускаем если нечего продавать
+                if(!sel || !sel.value) return; 
                 
                 let name = sel.value;
                 let qty = parseFloat(row.querySelector('.sale-qty').value) || 0;
@@ -1169,16 +1149,13 @@
             updateUI();
         }
 
-        // --- РЕНДЕР ИНТЕРФЕЙСА ---
         function updateUI() {
-            // 1. ГЛАВНАЯ
             let inc = 0, exp = 0, transHtml = '';
             db.transactions.slice().reverse().forEach((t) => {
                 if(t.type === 'Доход') inc += t.amount; else exp += t.amount;
                 let color = t.type === 'Доход' ? 'text-success' : 'text-danger';
                 let sign = t.type === 'Доход' ? '+' : '-';
                 
-                // Кнопка отображается ТОЛЬКО для ручных расходов (внести расход)
                 let showEditBtn = t.isManual ? '' : 'display: none;'; 
                 
                 transHtml += `
@@ -1196,7 +1173,6 @@
             document.getElementById('transactions-list').style.display = db.transactions.length ? 'block' : 'none';
             document.getElementById('transactions-list').innerHTML = transHtml;
 
-            // 2. ЗАКУПКИ
             let purHtml = '';
             db.purchasesLog.slice().reverse().forEach((p) => {
                 let rows = p.items.map(i => `<tr><td>${i.name}</td><td class="text-end">${i.qty} шт</td><td class="text-end">${i.price.toFixed(2)} $</td></tr>`).join('');
@@ -1212,7 +1188,6 @@
             document.getElementById('purchases-list').style.display = db.purchasesLog.length ? 'block' : 'none';
             document.getElementById('purchases-list').innerHTML = purHtml;
 
-            // 3. СКЛАД
             let currentStock = db.stock.filter(s => s.category === currentStockCategory && s.qty > 0);
             let groupedStock = {};
             currentStock.forEach(s => {
@@ -1234,7 +1209,6 @@
                 document.getElementById('stock-table').style.display = 'none';
             }
 
-            // 4. КУХНЯ
             let kitHtml = '';
             db.kitchenLog.slice().reverse().forEach((k) => {
                 let rows = k.itemsUsed.map(i => `<tr><td class="text-muted">${i.name}</td><td class="text-center text-muted">${i.qty} шт</td><td class="text-end text-muted">${i.cost.toFixed(2)}$</td></tr>`).join('');
@@ -1258,7 +1232,6 @@
             document.getElementById('kitchen-list').style.display = db.kitchenLog.length ? 'block' : 'none';
             document.getElementById('kitchen-list').innerHTML = kitHtml;
 
-            // 5. ПРОДАЖИ
             let saleHtml = '';
             db.salesLog.slice().reverse().forEach((s) => {
                 let rows = s.items.map(i => `<tr><td>${i.name}</td><td class="text-center">${i.qty} шт</td><td class="text-end text-muted">${i.expense.toFixed(2)}$</td><td class="text-end">${i.income.toFixed(2)}$</td></tr>`).join('');
@@ -1280,10 +1253,8 @@
             document.getElementById('sales-list').innerHTML = saleHtml;
         }
 
-        // Инициализация
         document.addEventListener('DOMContentLoaded', () => {
-            fetchDb(); // Сначала качаем базу
-            addPurchaseRow();
+            fetchDb(); 
         });
     </script>
 </body>
