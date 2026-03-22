@@ -418,10 +418,15 @@
                 const response = await fetch(GAS_URL);
                 db = await response.json();
                 
-                // Восстанавливаем счетчик транзакций
                 if (db.transactions.length > 0) {
                     transIdCounter = Math.max(...db.transactions.map(t => t.id)) + 1;
                 }
+                
+                // --- ВОТ ЗДЕСЬ ДАННЫЕ УЖЕ ЕСТЬ ---
+                // Сначала очищаем контейнер (на случай, если там была пустая строка)
+                document.getElementById('purchase-rows-container').innerHTML = '';
+                // Теперь создаем строку — она увидит наполненный db.catalog
+                addPurchaseRow(); 
                 
                 updateUI();
             } catch (error) {
@@ -577,16 +582,35 @@
         // --- ЗАКУПКИ ---
         let purRowCount = 0;
         function addPurchaseRow() {
-            purRowCount++;
-            let options = '<option value="" disabled selected>Выберите продукт</option>' + db.catalog.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
-            let html = `
-                <div class="row g-2 mb-2 align-items-center pur-row" id="pur-row-${purRowCount}">
-                    <div class="col-6"><select class="form-select pur-item">${options}</select></div>
-                    <div class="col-3"><div class="input-group"><input type="number" class="form-control pur-qty" value="1" min="1" oninput="calcPurchaseTotal()"><span class="input-group-text small px-1">шт</span></div></div>
-                    <div class="col-3"><div class="input-group"><input type="number" class="form-control pur-price" value="10" min="0" oninput="calcPurchaseTotal()"><span class="input-group-text small px-1">$</span></div></div>
-                </div>`;
-            document.getElementById('purchase-rows-container').insertAdjacentHTML('beforeend', html);
-            calcPurchaseTotal();
+            const container = document.getElementById('purchase-rows-container');
+            const row = document.createElement('div');
+            row.className = 'purchase-row row g-2 mb-2 align-items-center';
+            
+            // Генерируем опции для каталога динамически из db.catalog
+            let catalogOptions = '<option value="" selected disabled>Выберите продукт</option>';
+            db.catalog.forEach(item => {
+                catalogOptions += `<option value="${item.id}">${item.name}</option>`;
+            });
+        
+            row.innerHTML = `
+                <div class="col-6">
+                    <select class="form-select pur-item-select" required onchange="updatePurchaseTotal()">
+                        ${catalogOptions}
+                    </select>
+                </div>
+                <div class="col-2">
+                    <input type="number" class="form-control pur-qty" placeholder="Кол-во" min="1" value="1" required oninput="updatePurchaseTotal()">
+                </div>
+                <div class="col-3">
+                    <input type="number" class="form-control pur-price" placeholder="Цена" step="0.01" required oninput="updatePurchaseTotal()">
+                </div>
+                <div class="col-1 text-end">
+                    <button type="button" class="btn btn-link text-danger p-0" onclick="this.closest('.row').remove(); updatePurchaseTotal();">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(row);
         }
 
         function calcPurchaseTotal() {
