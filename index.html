@@ -2,308 +2,1265 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sims 4 Bakery Accounting</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sims 4 Bakery - Учет</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --nav-bg: #ffffff;
+            --accent-color: #8c52ff;
+            --income-color: #20c997;
+            --expense-color: #ff6b6b;
+            --text-main: #2b2b2b;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding-bottom: 90px;
+            padding-top: 20px;
+        }
+
+        /* Карточки дашборда */
+        .card-profit { background: linear-gradient(135deg, var(--accent-color), #b185ff); color: white; border: none; border-radius: 1rem; }
+        .card-income { background: linear-gradient(135deg, var(--income-color), #48e5b8); color: white; border: none; border-radius: 1rem; }
+        .card-expense { background: linear-gradient(135deg, var(--expense-color), #ff8e8e); color: white; border: none; border-radius: 1rem; }
+
+        /* История */
+        .history-card { background: white; border-radius: 1rem; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 1rem; padding: 1rem; }
+        
+        /* Таблицы */
+        .table-custom { width: 100%; margin-bottom: 0; font-size: 0.85rem; }
+        .table-custom th { color: #888; font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+        .table-custom td { padding: 8px 0; border-bottom: 1px solid #f8f9fa; }
+        .table-custom tr:last-child td { border-bottom: none; }
+
+        /* FAB Кнопка */
+        .fab-container { position: fixed; bottom: 90px; right: 20px; z-index: 1030; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+        .fab-btn { border-radius: 50px; padding: 12px 24px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.15); background: white; border: 1px solid #eee; display: flex; align-items: center; gap: 8px; }
+        .fab-btn:hover {
+            background-color: #ffffff; 
+            box-shadow: 0 6px 16px rgba(140, 82, 255, 0.4);
+            color: white;
+        }
+        .fab-btn:active {
+            background-color: #ffffff; 
+            transform: translateY(1px);
+        }
+
+        /* Нижнее меню */
+        .bottom-nav { background: var(--nav-bg); box-shadow: 0 -2px 10px rgba(0,0,0,0.05); border-radius: 1.5rem 1.5rem 0 0; padding: 5px 0; }
+        .nav-item-custom { text-align: center; color: #aaa; font-size: 0.75rem; padding: 5px 10px; cursor: pointer; transition: 0.2s; flex: 1; }
+        .nav-item-custom i { font-size: 1.3rem; display: block; margin-bottom: 2px; }
+        .nav-item-custom.active { color: var(--accent-color); font-weight: 600; }
+
+        /* Вкладки на складе */
+        .stock-tabs { display: flex; background: #e9ecef; border-radius: 0.5rem; overflow: hidden; margin-bottom: 1rem; }
+        .stock-tab { flex: 1; text-align: center; padding: 10px; font-size: 0.85rem; font-weight: 600; color: #6c757d; cursor: pointer; transition: 0.2s; }
+        .stock-tab.active { background: #6c757d; color: white; }
+
+        /* Модальные окна */
+        .modal-content { border-radius: 1.5rem; border: none; }
+        .form-control, .form-select { border-radius: 0.75rem; background-color: #f8f9fa; border: 1px solid #e9ecef; }
+        
+        .empty-state { text-align: center; padding: 40px 20px; color: #aaa; }
+        .empty-state i { font-size: 2.5rem; color: #ddd; margin-bottom: 15px; display: block; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .recipe-card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem; }
+        .warning-banner { background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 0.5rem; font-size: 0.85rem; display: none; margin-bottom: 15px; border: 1px solid #ffeeba; }
+    </style>
 </head>
 <body>
-    <div id="app-container">
-        
-        <main id="view-dashboard" class="view active">
-            <div class="summary-cards">
-                <div class="card profit-card">
-                    <span class="label">Чистая прибыль</span>
-                    <h2 id="total-profit">0 $</h2>
-                </div>
-                <div class="grid-2">
-                    <div class="card">
-                        <span class="label">Доходы</span>
-                        <h3 id="total-income" class="text-green">0 $</h3>
-                    </div>
-                    <div class="card">
-                        <span class="label">Расходы</span>
-                        <h3 id="total-expense" class="text-red">0 $</h3>
-                    </div>
-                </div>
+
+    <div class="container">
+        <div id="tab-main" class="tab-content active">
+            <h4 class="mb-4 fw-bold">Главная</h4>
+            <div class="card card-profit p-3 mb-3">
+                <div class="text-white-50 small">Чистая прибыль</div>
+                <h2 class="mb-0 fw-bold" id="ui-net-profit">0 $</h2>
             </div>
+            <div class="row g-2 mb-4">
+                <div class="col-6"><div class="card card-income p-3"><div class="text-white-50 small">Доходы</div><h4 class="mb-0 fw-bold" id="ui-total-income">0 $</h4></div></div>
+                <div class="col-6"><div class="card card-expense p-3"><div class="text-white-50 small">Расходы</div><h4 class="mb-0 fw-bold" id="ui-total-expense">0 $</h4></div></div>
+            </div>
+
+            <h5 class="fw-bold mb-3">История транзакций</h5>
+            <div id="main-empty-state" class="empty-state">
+                <i class="bi bi-wallet2"></i>
+                <p>Начните вести учет прибыли!<br>Расходы на продукты и доходы с продаж подтянутся автоматически.</p>
+            </div>
+            <div id="transactions-list" style="display: none;"></div>
             
-            <div id="dashboard-content">
-                <div class="empty-state">
-                    <p>Начните вести учет прибыли! Расходы на продукты и доходы с продаж автоматически подтянутся из нужных разделов. Здесь вы можете вносить дополнительные расходы.</p>
-                </div>
-                <div id="dashboard-history" class="history-list"></div>
-            </div>
-
-        <div class="fab-container">
-            <button class="fab" onclick="openModal('modal-expense')">
-                <i class="fas fa-plus"></i> Внести расход
-            </button>
-        </div>
-        </main>
-
-        <main id="view-purchases" class="view">
-            <h3>История закупок</h3>
-            <div id="purchases-content">
-                <div class="empty-state">
-                    <p>Добавьте закупленные в магазине продукты.</p>
-                </div>
-                <div id="purchases-history" class="history-list"></div>
-            </div>
-        <div class="fab-container">
-            <button class="fab" onclick="openModal('modal-purchase')">
-                <i class="fas fa-plus"></i> Добавить закупку
-            </button>
-        </div>
-        </main>
-
-        <main id="view-warehouse" class="view">
-            <h3>Остатки</h3>
-            <div id="warehouse-display">
-                <div class="empty-state" id="warehouse-empty-text">
-                    Здесь будут показаны остатки продуктов
-                </div>
-                <div id="warehouse-content" class="card mt-2"></div>
-            </div>
-
-            <div class="segmented-control-container">
-                <div class="segmented-control">
-                    <button class="segment-btn active" onclick="switchSubTab('products', this)">Продукты</button>
-                    <button class="segment-btn" onclick="switchSubTab('preps', this)">Заготовки</button>
-                    <button class="segment-btn" onclick="switchSubTab('dishes', this)">Блюда</button>
-                </div>
-            </div>
-        </main>
-
-        <main id="view-kitchen" class="view">
-            <h3>История приготовления</h3>
-            <div id="kitchen-content">
-                <div class="empty-state">
-                    <p>Добавьте приготовленные блюда или заготовки.</p>
-                </div>
-                <div id="kitchen-history" class="history-list"></div>
-            </div>
-        <div class="fab-container">
-            <div class="fab-group">
-                <button class="fab secondary" onclick="openModal('modal-prep')">
-                    <i class="fas fa-plus"></i> Создать заготовку
-                </button>
-                <button class="fab" onclick="openModal('modal-cook')">
-                    <i class="fas fa-plus"></i> Приготовить блюдо
+            <div class="fab-container">
+                <button class="btn fab-btn text-dark" data-bs-toggle="modal" data-bs-target="#expenseModal" onclick="openExpenseModal()">
+                    <i class="bi bi-plus-circle"></i> Внести расход
                 </button>
             </div>
         </div>
-        </main>
 
-        <main id="view-sales" class="view">
-            <h3>История продаж</h3>
-            <div id="sales-content">
-                <div class="empty-state">
-                    <p>Добавьте информацию о продаже блюд на ярмарке или в магазине.</p>
-                </div>
-                <div id="sales-history" class="history-list"></div>
+        <div id="tab-purchases" class="tab-content">
+            <h4 class="mb-4 fw-bold">История закупок</h4>
+            <div id="purchases-empty-state" class="empty-state"><i class="bi bi-cart3"></i><p>Добавьте закупленные в магазине продукты</p></div>
+            <div id="purchases-list" style="display: none;"></div>
+
+            <div class="fab-container">
+                <button class="btn fab-btn text-dark" data-bs-toggle="modal" data-bs-target="#purchaseModal" onclick="setModalDates('pur')">
+                    <i class="bi bi-plus-circle"></i> Сделать закупку
+                </button>
             </div>
-        <div class="fab-container">
-            <button class="fab" onclick="openModal('modal-sale')">
-                <i class="fas fa-plus"></i> Добавить продажу
-            </button>
         </div>
-        </main>
 
-        <nav id="tab-bar">
-            <button class="nav-item active" onclick="switchView('view-dashboard', this)">
-                <i class="fas fa-chart-pie"></i>
-                <span>Главная</span>
-            </button>
-            <button class="nav-item" onclick="switchView('view-purchases', this)">
-                <i class="fas fa-shopping-basket"></i>
-                <span>Закупки</span>
-            </button>
-            <button class="nav-item" onclick="switchView('view-warehouse', this)">
-                <i class="fas fa-boxes-stacked"></i>
-                <span>Склад</span>
-            </button>
-            <button class="nav-item" onclick="switchView('view-kitchen', this)">
-                <i class="fas fa-utensils"></i>
-                <span>Кухня</span>
-            </button>
-            <button class="nav-item" onclick="switchView('view-sales', this)">
-                <i class="fas fa-coins"></i>
-                <span>Продажи</span>
-            </button>
-        </nav>
+        <div id="tab-stock" class="tab-content">
+            <h4 class="mb-3 fw-bold">Остатки</h4>
+            <div class="stock-tabs">
+                <div class="stock-tab active" onclick="switchStockCategory('products', this)">Продукты</div>
+                <div class="stock-tab" onclick="switchStockCategory('preps', this)">Заготовки</div>
+                <div class="stock-tab" onclick="switchStockCategory('dishes', this)">Блюда</div>
+            </div>
+            <div class="history-card" id="stock-container">
+                <div id="stock-empty-state" class="empty-state py-3"><p class="mb-0 small">Склад пуст</p></div>
+                <table class="table-custom" id="stock-table" style="display: none;">
+                    <thead><tr><th>Название</th><th class="text-end">Единиц</th><th class="text-end">Цена за 1</th></tr></thead>
+                    <tbody id="stock-list"></tbody>
+                </table>
+            </div>
+        </div>
 
-        <div id="modal-expense" class="modal-overlay">
+        <div id="tab-kitchen" class="tab-content">
+            <h4 class="mb-4 fw-bold">История приготовления</h4>
+            <div id="kitchen-empty-state" class="empty-state"><i class="bi bi-cup-hot"></i><p>Добавьте приготовленные блюда</p></div>
+            <div id="kitchen-list" style="display: none;"></div>
+
+            <div class="fab-container">
+                <button class="btn fab-btn text-dark" data-bs-toggle="modal" data-bs-target="#prepModal" onclick="openPrepModal()">
+                    <i class="bi bi-plus-circle"></i> Создать заготовку
+                </button>
+                <button class="btn fab-btn text-dark" data-bs-toggle="modal" data-bs-target="#dishModal" onclick="openDishModal()">
+                    <i class="bi bi-plus-circle"></i> Приготовить блюдо
+                </button>
+            </div>
+        </div>
+
+        <div id="tab-sales" class="tab-content">
+            <h4 class="mb-4 fw-bold">История продаж</h4>
+            <div id="sales-empty-state" class="empty-state"><i class="bi bi-shop"></i><p>Добавьте информацию о продаже блюд</p></div>
+            <div id="sales-list" style="display: none;"></div>
+
+            <div class="fab-container">
+                <button class="btn fab-btn text-dark" data-bs-toggle="modal" data-bs-target="#saleModal" onclick="openSaleModal()">
+                    <i class="bi bi-plus-circle"></i> Добавить продажу
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar fixed-bottom bottom-nav">
+        <div class="container-fluid d-flex justify-content-between px-2">
+            <div class="nav-item-custom active" onclick="switchTab('tab-main', this)"><i class="bi bi-house-door-fill"></i> Главная</div>
+            <div class="nav-item-custom" onclick="switchTab('tab-purchases', this)"><i class="bi bi-cart-fill"></i> Закупки</div>
+            <div class="nav-item-custom" onclick="switchTab('tab-stock', this)"><i class="bi bi-box-seam-fill"></i> Склад</div>
+            <div class="nav-item-custom" onclick="switchTab('tab-kitchen', this)"><i class="bi bi-fire"></i> Кухня</div>
+            <div class="nav-item-custom" onclick="switchTab('tab-sales', this)"><i class="bi bi-database-fill-add"></i> Продажи</div>
+        </div>
+    </nav>
+
+    <div class="modal fade" id="expenseModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <h2>Новый расход</h2>
-                <div class="form-group">
-                    <label class="label-small">Дата (Симс)</label>
-                    <div class="date-inputs">
-                        <input type="number" id="exp-day" min="1" max="28" placeholder="ДД" class="input">
-                        <select id="exp-season" class="input">
-                            <option value="весна">Весна</option>
-                            <option value="лето">Лето</option>
-                            <option value="осень">Осень</option>
-                            <option value="зима">Зима</option>
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-4">Новый расход</h5>
+                    <div class="input-group mb-3">
+                        <input type="number" class="form-control" id="exp-day" placeholder="01">
+                        <select class="form-select" id="exp-season"><option value="0">весна</option><option value="1">лето</option><option value="2">осень</option><option value="3">зима</option></select>
+                        <input type="text" class="form-control" id="exp-cycle" placeholder="хх1">
+                    </div>
+                    <div class="row g-2 mb-4">
+                        <div class="col-8"><label class="small text-muted">Объект</label><input type="text" class="form-control" id="exp-name" placeholder="Холодильник"></div>
+                        <div class="col-4"><label class="small text-muted">Сумма</label><div class="input-group"><input type="number" class="form-control" id="exp-amount" placeholder="10"><span class="input-group-text">$</span></div></div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-light w-50" data-bs-dismiss="modal">Отмена</button>
+                        <button class="btn btn-secondary w-50 text-white" onclick="saveManualExpense()">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="purchaseModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
+            <div class="modal-content">
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-4">Новая закупка</h5>
+                    <div class="input-group mb-4">
+                        <input type="number" class="form-control" id="pur-day">
+                        <select class="form-select" id="pur-season"><option value="0">весна</option><option value="1">лето</option><option value="2">осень</option><option value="3">зима</option></select>
+                        <input type="text" class="form-control" id="pur-cycle">
+                    </div>
+                    <div id="purchase-rows-container"></div>
+                    <button class="btn btn-link text-decoration-none text-muted p-0 mb-4 small" onclick="addPurchaseRow()">+ Добавить продукт</button>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check"><input class="form-check-input" type="checkbox" id="pur-delivery" onchange="calcPurchaseTotal()"><label class="form-check-label fw-bold">Доставка</label></div>
+                        <span class="fw-bold">+20 $</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center bg-light p-3 mb-4 rounded">
+                        <span class="fw-bold">ИТОГО</span><h5 class="mb-0 fw-bold"><span id="pur-total-sum">0</span> $</h5>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-light w-50" data-bs-dismiss="modal">Отмена</button>
+                        <button class="btn btn-secondary w-50 text-white" onclick="savePurchase()">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="prepModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
+            <div class="modal-content">
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-4">Создать заготовку</h5>
+                    <div class="input-group mb-4">
+                        <input type="number" class="form-control" id="prep-day">
+                        <select class="form-select" id="prep-season"><option value="0">весна</option><option value="1">лето</option><option value="2">осень</option><option value="3">зима</option></select>
+                        <input type="text" class="form-control" id="prep-cycle">
+                    </div>
+
+                    <div class="d-flex gap-2 mb-3">
+                        <select class="form-select" id="prep-select" onchange="renderPrepRecipeView()"></select>
+                        <button class="btn btn-light border" id="prep-action-btn" onclick="openPrepRecipeModal()"><i class="bi bi-plus-lg"></i></button>
+                    </div>
+
+                    <div id="prep-recipe-view" style="display: none;">
+                        <div class="d-flex justify-content-between text-muted small mb-2">
+                            <span>Выход порций:</span> <span class="fw-bold" id="prep-output-qty">0</span>
+                        </div>
+                        <div id="prep-warning" class="warning-banner"><i class="bi bi-exclamation-triangle"></i> Не хватает продуктов на складе!</div>
+                        <table class="table-custom mb-4">
+                            <thead><tr><th>Ингредиент</th><th class="text-center">Кол-во</th><th class="text-end">На складе</th></tr></thead>
+                            <tbody id="prep-ingredients-list"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button class="btn btn-light w-50" data-bs-dismiss="modal">Отмена</button>
+                        <button class="btn btn-secondary w-50 text-white" id="prep-save-btn" onclick="saveKitchenAction('prep')">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="prepRecipeModal" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
+            <div class="modal-content">
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-4" id="prep-recipe-title">Новый рецепт заготовки</h5>
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">Название заготовки</label>
+                        <input type="text" class="form-control" id="prep-recipe-name">
+                    </div>
+                    <div class="mb-4">
+                        <label class="small text-muted mb-1">Кол-во порций (выход)</label>
+                        <input type="number" class="form-control w-50" id="prep-recipe-output" value="1" min="1">
+                    </div>
+                    <label class="small text-muted mb-2">Ингредиенты</label>
+                    <div id="prep-recipe-rows"></div>
+                    <button class="btn btn-link text-decoration-none text-muted p-0 mb-4 small" onclick="addRecipeIngredientRow('prep-recipe-rows')">+ Добавить продукт</button>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-light w-50" onclick="closeRecipeModal('prepRecipeModal', 'prepModal')">Отмена</button>
+                        <button class="btn btn-secondary w-50 text-white" onclick="savePrepRecipe()">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="dishModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
+            <div class="modal-content">
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-4">Приготовить блюдо</h5>
+                    <div class="input-group mb-4">
+                        <input type="number" class="form-control" id="dish-day">
+                        <select class="form-select" id="dish-season"><option value="0">весна</option><option value="1">лето</option><option value="2">осень</option><option value="3">зима</option></select>
+                        <input type="text" class="form-control" id="dish-cycle">
+                    </div>
+
+                    <div class="d-flex gap-2 mb-3">
+                        <select class="form-select" id="dish-select" onchange="renderDishRecipeView()"></select>
+                        <button class="btn btn-light border" id="dish-action-btn" onclick="openDishRecipeModal()"><i class="bi bi-plus-lg"></i></button>
+                    </div>
+
+                    <div id="dish-recipe-view" style="display: none;">
+                        <select class="form-select mb-3" id="dish-variant-select" onchange="updateDishIngredientsView()"></select>
+                        <div class="d-flex justify-content-between text-muted small mb-2">
+                            <span>Выход порций:</span> <span class="fw-bold" id="dish-output-qty">0</span>
+                        </div>
+                        <div id="dish-warning" class="warning-banner"><i class="bi bi-exclamation-triangle"></i> Не хватает продуктов/заготовок на складе!</div>
+                        <table class="table-custom mb-3">
+                            <thead><tr><th>Ингредиент</th><th class="text-center">Кол-во</th><th class="text-end">На складе</th></tr></thead>
+                            <tbody id="dish-ingredients-list"></tbody>
+                        </table>
+                        <label class="small text-muted mb-1 mt-2">Качество</label>
+                        <select class="form-select" id="dish-quality">
+                            <option value="Великолепно">Великолепно</option>
+                            <option value="Нормально" selected>Нормально</option>
+                            <option value="Плохо">Плохо</option>
                         </select>
-                        <input type="text" id="exp-cycle" placeholder="хх1" class="input">
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="label-small">Объект</label>
-                    <input type="text" id="exp-desc" placeholder="Холодильник" class="input w-full">
-                </div>
-                <div class="form-group">
-                    <label class="label-small">Сумма</label>
-                    <div class="input-unit-wrapper" data-unit="$">
-                        <input type="number" id="exp-amount" placeholder="0" class="input w-full">
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button class="btn btn-light w-50" data-bs-dismiss="modal">Отмена</button>
+                        <button class="btn btn-secondary w-50 text-white" id="dish-save-btn" onclick="saveKitchenAction('dish')">Сохранить</button>
                     </div>
-                </div>
-                <div class="grid-2 mt-4">
-                    <button class="btn btn-secondary" onclick="closeModal('modal-expense')">Отмена</button>
-                    <button class="btn btn-primary" onclick="saveExpense()">Сохранить</button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div id="modal-purchase" class="modal-overlay">
+    <div class="modal fade" id="dishRecipeModal" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
             <div class="modal-content">
-                <h2>Новая закупка</h2>
-                <div class="form-group">
-                    <label class="label-small">Дата</label>
-                    <div class="date-inputs">
-                        <input type="number" id="pur-day" placeholder="ДД" class="input">
-                        <select id="pur-season" class="input"><option>Весна</option><option>Лето</option><option>Осень</option><option>Зима</option></select>
-                        <input type="text" id="pur-cycle" placeholder="хх1" class="input">
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-4" id="dish-recipe-title">Новый рецепт блюда</h5>
+                    <div class="mb-4">
+                        <label class="small text-muted mb-1">Название блюда</label>
+                        <input type="text" class="form-control" id="dish-recipe-name">
+                    </div>
+                    
+                    <div id="dish-recipe-cards-container"></div>
+                    <button class="btn btn-link text-decoration-none text-muted p-0 mb-4 small fw-bold" onclick="addDishRecipeCard()">+ Добавить вариант рецепта</button>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-light w-50" onclick="closeRecipeModal('dishRecipeModal', 'dishModal')">Отмена</button>
+                        <button class="btn btn-secondary w-50 text-white" onclick="saveDishRecipe()">Сохранить</button>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="label-small">Продукты</label>
-                    <div id="purchase-items-container" class="dynamic-list"></div>
-                    <button class="text-btn mt-2" onclick="addPurchaseRow()">+ Добавить продукт</button>
-                </div>
-                <div class="form-group flex-between mt-2">
-                    <label><input type="checkbox" id="purchase-delivery"> Доставка 20$</label>
-                    <div class="total-text">Итого: <strong id="purchase-total">0 $</strong></div>
-                </div>
-                <div class="grid-2 mt-4">
-                    <button class="btn btn-secondary" onclick="closeModal('modal-purchase')">Отмена</button>
-                    <button class="btn btn-primary" onclick="savePurchase()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="saleModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
+            <div class="modal-content">
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-4">Новая продажа</h5>
+                    <div class="input-group mb-3">
+                        <input type="number" class="form-control" id="sale-day">
+                        <select class="form-select" id="sale-season"><option value="0">весна</option><option value="1">лето</option><option value="2">осень</option><option value="3">зима</option></select>
+                        <input type="text" class="form-control" id="sale-cycle">
+                    </div>
+                    <label class="small text-muted mb-1">Тип продажи</label>
+                    <select class="form-select mb-4" id="sale-type"><option value="Ярмарка">Ярмарка</option><option value="Магазин">Магазин</option></select>
+
+                    <div id="sale-rows-container"></div>
+                    <button class="btn btn-link text-decoration-none text-muted p-0 mb-4 small" onclick="addSaleRow()">+ Добавить блюдо</button>
+
+                    <div class="d-flex justify-content-between align-items-center bg-light p-3 mb-4 rounded">
+                        <span class="fw-bold">ИТОГО ДОХОД</span><h5 class="mb-0 fw-bold"><span id="sale-total-sum">0</span> $</h5>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-light w-50" data-bs-dismiss="modal">Отмена</button>
+                        <button class="btn btn-secondary w-50 text-white" onclick="saveSale()">Сохранить</button>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div id="modal-prep" class="modal-overlay">
-            <div class="modal-content">
-                <h2>Создать заготовку</h2>
-                <div class="form-group">
-                    <label class="label-small">Название заготовки</label>
-                    <input type="text" id="prep-name" class="input w-full" placeholder="Например: Тесто">
-                </div>
-                <div class="form-group">
-                    <label class="label-small">Ингредиенты</label>
-                    <div class="table-header"><span>Название</span><span class="text-right">Единиц</span></div>
-                    <div id="prep-ingredients-container" class="dynamic-list"></div>
-                    <button class="text-btn mt-2" onclick="addIngredientRow('prep-ingredients-container')">+ Добавить ингредиент</button>
-                </div>
-                <div class="grid-2 mt-4">
-                    <button class="btn btn-secondary" onclick="closeModal('modal-prep')">Отмена</button>
-                    <button class="btn btn-primary" onclick="savePrep()">Сохранить</button>
-                </div>
-            </div>
-        </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-        <div id="modal-cook" class="modal-overlay">
-            <div class="modal-content">
-                <h2>Приготовить блюдо</h2>
-                <div class="form-group">
-                    <label class="label-small">Блюдо</label>
-                    <div class="select-with-btn">
-                        <select id="cook-dish-select" class="input w-full" onchange="handleDishSelection()">
-                            <option value="empty">Выберите блюдо...</option>
-                            <option value="new" class="text-accent">+ Создать новое блюдо</option>
-                        </select>
-                        <button id="btn-edit-dish" class="icon-btn hidden" onclick="openModal('modal-dish-edit')">
-                            <i class="fas fa-pen"></i>
+    <script>
+        // Вставь сюда свой URL веб-приложения Google Apps Script
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwOm53PfaVCnLFWEnEgo49Kvy3zOZtmNwdT_NLhSg2K3SaLTZBz2pwth8gANM3ksjbC/exec';
+
+        // --- БАЗА ДАННЫХ (теперь пустая по умолчанию) ---
+        let db = {
+            lastUsedDate: { day: 1, season: 0, cycle: 'xx1' },
+            catalog: [], prepRecipes: [], dishRecipes: [],
+            transactions: [], purchasesLog: [], kitchenLog: [], salesLog: [], stock: []
+        };
+
+        let transIdCounter = 1;
+        let currentStockCategory = 'products';
+        let currentDishRecipeCardCount = 0;
+
+        // --- ИНДИКАТОР ЗАГРУЗКИ ---
+        function toggleLoading(show) {
+            let loader = document.getElementById('global-loader');
+            if (!loader) {
+                document.body.insertAdjacentHTML('beforeend', `
+                    <div id="global-loader" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; justify-content:center; align-items:center; flex-direction:column;">
+                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                        <div class="mt-3 fw-bold text-muted" id="loader-text">Синхронизация с базой...</div>
+                    </div>
+                `);
+                loader = document.getElementById('global-loader');
+            }
+            loader.style.display = show ? 'flex' : 'none';
+        }
+
+        // --- СИНХРОНИЗАЦИЯ С GAS ---
+        async function fetchDb() {
+            toggleLoading(true);
+            document.getElementById('loader-text').innerText = 'Загрузка данных...';
+            try {
+                const response = await fetch(GAS_URL);
+                db = await response.json();
+                
+                // Восстанавливаем счетчик транзакций
+                if (db.transactions.length > 0) {
+                    transIdCounter = Math.max(...db.transactions.map(t => t.id)) + 1;
+                }
+                
+                updateUI();
+            } catch (error) {
+                alert('Ошибка загрузки базы данных: ' + error);
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        async function syncDb() {
+            toggleLoading(true);
+            document.getElementById('loader-text').innerText = 'Сохранение...';
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(db),
+                    // mode: 'no-cors' // Раскомментируй если будут проблемы с CORS при локальном тестировании
+                });
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+                // При no-cors fetch всегда будет падать в catch с TypeError, это нормально
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        // --- УТИЛИТЫ ---
+        const seasonNames = ["весна", "лето", "осень", "зима"];
+        function getDateStr(d, s, c) {
+            let day = d < 10 ? '0' + parseInt(d) : d;
+            return `${day}/${seasonNames[s]}/${c}`;
+        }
+
+        function updateLastUsedDate(d, s, c) {
+            db.lastUsedDate = { day: d, season: s, cycle: c };
+        }
+
+        function setModalDates(prefix) {
+            document.getElementById(`${prefix}-day`).value = db.lastUsedDate.day;
+            document.getElementById(`${prefix}-season`).value = db.lastUsedDate.season;
+            document.getElementById(`${prefix}-cycle`).value = db.lastUsedDate.cycle;
+        }
+
+        function getStockQty(name) {
+            return db.stock.filter(s => s.name === name).reduce((sum, s) => sum + s.qty, 0);
+        }
+
+        function switchTab(tabId, navElement) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.nav-item-custom').forEach(nav => nav.classList.remove('active'));
+            navElement.classList.add('active');
+        }
+
+        function switchStockCategory(cat, element) {
+            currentStockCategory = cat;
+            document.querySelectorAll('.stock-tab').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            updateUI();
+        }
+
+        // --- ЛОГИКА FIFO ---
+        function simulateFIFO(name, qtyNeeded) {
+            let cost = 0; let remaining = qtyNeeded;
+            for(let i = 0; i < db.stock.length; i++) {
+                if(remaining <= 0) break;
+                let s = db.stock[i];
+                if(s.name === name && s.qty > 0) {
+                    let take = Math.min(s.qty, remaining);
+                    remaining -= take;
+                    cost += take * s.price;
+                }
+            }
+            return cost;
+        }
+
+        function deductFIFO(name, qtyNeeded) {
+            let cost = 0; let remaining = qtyNeeded;
+            for(let i = 0; i < db.stock.length; i++) {
+                if(remaining <= 0) break;
+                let s = db.stock[i];
+                if(s.name === name && s.qty > 0) {
+                    let take = Math.min(s.qty, remaining);
+                    s.qty -= take;
+                    remaining -= take;
+                    cost += take * s.price;
+                }
+            }
+            return cost;
+        }
+
+        // --- РАСХОД РУЧНОЙ (С РЕДАКТИРОВАНИЕМ) ---
+        function openExpenseModal() {
+            setModalDates('exp');
+            document.getElementById('exp-name').value = '';
+            document.getElementById('exp-amount').value = '';
+            delete document.getElementById('expenseModal').dataset.editId; // Очищаем статус редактирования
+        }
+
+        function editExpense(id) {
+            let t = db.transactions.find(x => x.id === id);
+            if (!t) return;
+            
+            let parts = t.date.split('/');
+            let day = parseInt(parts[0]);
+            let seasonStr = parts[1];
+            let cycle = parts[2];
+            let seasonIdx = seasonNames.indexOf(seasonStr);
+            
+            document.getElementById('exp-day').value = day;
+            document.getElementById('exp-season').value = seasonIdx !== -1 ? seasonIdx : 2;
+            document.getElementById('exp-cycle').value = cycle;
+            document.getElementById('exp-name').value = t.title;
+            document.getElementById('exp-amount').value = t.amount;
+            
+            document.getElementById('expenseModal').dataset.editId = id; // Запоминаем ID транзакции для сохранения
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('expenseModal')).show();
+        }
+
+        function saveManualExpense() {
+            let d = document.getElementById('exp-day').value || 10;
+            let s = document.getElementById('exp-season').value;
+            let c = document.getElementById('exp-cycle').value || 'xx1';
+            let name = document.getElementById('exp-name').value || 'Расход';
+            let amount = parseFloat(document.getElementById('exp-amount').value) || 0;
+            if(amount <= 0) return;
+
+            updateLastUsedDate(d, s, c);
+            let dateStr = getDateStr(d, s, c);
+            
+            let editId = document.getElementById('expenseModal').dataset.editId;
+            if (editId) {
+                // Если режим редактирования — обновляем существующую запись
+                let t = db.transactions.find(x => x.id == editId);
+                if(t) {
+                    t.date = dateStr;
+                    t.title = name;
+                    t.amount = amount;
+                }
+                delete document.getElementById('expenseModal').dataset.editId;
+            } else {
+                // Если новая запись
+                db.transactions.push({ id: transIdCounter++, date: dateStr, type: 'Расход', title: name, amount: amount, isManual: true });
+            }
+            
+            syncDb();
+
+            bootstrap.Modal.getInstance(document.getElementById('expenseModal')).hide();
+            document.getElementById('exp-name').value = ''; document.getElementById('exp-amount').value = '';
+            updateUI();
+        }
+
+        // --- ЗАКУПКИ ---
+        let purRowCount = 0;
+        function addPurchaseRow() {
+            purRowCount++;
+            let options = '<option value="" disabled selected>Выберите продукт</option>' + db.catalog.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+            let html = `
+                <div class="row g-2 mb-2 align-items-center pur-row" id="pur-row-${purRowCount}">
+                    <div class="col-6"><select class="form-select pur-item">${options}</select></div>
+                    <div class="col-3"><div class="input-group"><input type="number" class="form-control pur-qty" value="1" min="1" oninput="calcPurchaseTotal()"><span class="input-group-text small px-1">шт</span></div></div>
+                    <div class="col-3"><div class="input-group"><input type="number" class="form-control pur-price" value="10" min="0" oninput="calcPurchaseTotal()"><span class="input-group-text small px-1">$</span></div></div>
+                </div>`;
+            document.getElementById('purchase-rows-container').insertAdjacentHTML('beforeend', html);
+            calcPurchaseTotal();
+        }
+
+        function calcPurchaseTotal() {
+            let total = 0;
+            document.querySelectorAll('.pur-row').forEach(row => {
+                let sel = row.querySelector('.pur-item');
+                if(sel.value) { // Считаем только если продукт выбран
+                    total += (parseFloat(row.querySelector('.pur-qty').value)||0) * (parseFloat(row.querySelector('.pur-price').value)||0);
+                }
+            });
+            if(document.getElementById('pur-delivery').checked) total += 20;
+            document.getElementById('pur-total-sum').textContent = total;
+        }
+
+        function savePurchase() {
+            let d = document.getElementById('pur-day').value || 10;
+            let s = document.getElementById('pur-season').value;
+            let c = document.getElementById('pur-cycle').value || 'xx1';
+            let delivery = document.getElementById('pur-delivery').checked ? 20 : 0;
+            let dateStr = getDateStr(d, s, c);
+            updateLastUsedDate(d, s, c);
+            
+            let items = [], totalQty = 0, sumWithoutDelivery = 0;
+            
+            document.querySelectorAll('.pur-row').forEach(row => {
+                let sel = row.querySelector('.pur-item');
+                if(!sel.value) return; // Пропускаем пустые селекты
+                
+                let qty = parseFloat(row.querySelector('.pur-qty').value)||0;
+                let price = parseFloat(row.querySelector('.pur-price').value)||0;
+                if(qty > 0) {
+                    totalQty += qty;
+                    sumWithoutDelivery += (qty * price);
+                }
+            });
+
+            if(totalQty === 0) return;
+            
+            let deliveryPerItem = delivery > 0 ? (delivery / totalQty) : 0;
+
+            document.querySelectorAll('.pur-row').forEach(row => {
+                let sel = row.querySelector('.pur-item');
+                if(!sel.value) return;
+                
+                let name = sel.options[sel.selectedIndex].text;
+                let qty = parseFloat(row.querySelector('.pur-qty').value)||0;
+                let basePrice = parseFloat(row.querySelector('.pur-price').value)||0;
+                
+                if(qty > 0) {
+                    let finalPricePerItem = basePrice + deliveryPerItem;
+                    finalPricePerItem = Math.round(finalPricePerItem * 100) / 100;
+
+                    items.push({ name, qty, price: finalPricePerItem });
+                    db.stock.push({ name, qty, price: finalPricePerItem, category: 'products' });
+                }
+            });
+
+            let total = sumWithoutDelivery + delivery;
+            db.transactions.push({ id: transIdCounter++, date: dateStr, type: 'Расход', title: 'Закупка продуктов', amount: total, isManual: false });
+            db.purchasesLog.push({ date: dateStr, items, delivery, total });
+
+            syncDb();
+
+            bootstrap.Modal.getInstance(document.getElementById('purchaseModal')).hide();
+            document.getElementById('purchase-rows-container').innerHTML = '';
+            document.getElementById('pur-delivery').checked = false;
+            addPurchaseRow();
+            updateUI();
+        }
+
+        // --- КУХНЯ: ОБЩЕЕ СОЗДАНИЕ РЕЦЕПТОВ ---
+        function getIngredientOptions() {
+            let allItems = [...db.catalog.map(i=>i.name), ...db.prepRecipes.map(p=>p.name)];
+            return '<option value="" disabled selected>Выберите ингредиент</option>' + allItems.map(n => `<option value="${n}">${n}</option>`).join('');
+        }
+
+        function addRecipeIngredientRow(containerId) {
+            let id = Date.now() + Math.floor(Math.random() * 1000);
+            let options = getIngredientOptions();
+            let html = `
+                <div class="row g-2 mb-2 align-items-center recipe-ing-row" id="ing-row-${id}">
+                    <div class="col-7"><select class="form-select rec-item">${options}</select></div>
+                    <div class="col-4"><div class="input-group"><input type="number" class="form-control rec-qty" value="1" min="0.1" step="0.5"><span class="input-group-text small px-1">шт</span></div></div>
+                    <div class="col-1 text-end"><button class="btn btn-link text-danger p-0" onclick="document.getElementById('ing-row-${id}').remove();"><i class="bi bi-trash"></i></button></div>
+                </div>`;
+            document.getElementById(containerId).insertAdjacentHTML('beforeend', html);
+        }
+
+        function closeRecipeModal(closeId, openId) {
+            bootstrap.Modal.getInstance(document.getElementById(closeId)).hide();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById(openId)).show();
+        }
+
+        // --- КУХНЯ: ЗАГОТОВКИ ---
+        function openPrepModal() {
+            setModalDates('prep');
+            updatePrepSelect();
+        }
+
+        function updatePrepSelect() {
+            let sel = document.getElementById('prep-select');
+            let options = db.prepRecipes.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+            options += `<option value="ADD_NEW" class="fw-bold text-primary">+ Добавить заготовку</option>`;
+            sel.innerHTML = options || `<option value="ADD_NEW">+ Добавить заготовку</option>`;
+            renderPrepRecipeView();
+        }
+
+        function renderPrepRecipeView() {
+            let val = document.getElementById('prep-select').value;
+            let btn = document.getElementById('prep-action-btn');
+            let view = document.getElementById('prep-recipe-view');
+            
+            if(val === 'ADD_NEW' || !val) {
+                btn.innerHTML = '<i class="bi bi-plus-lg"></i>';
+                view.style.display = 'none';
+                document.getElementById('prep-save-btn').disabled = true;
+            } else {
+                btn.innerHTML = '<i class="bi bi-pencil"></i>';
+                view.style.display = 'block';
+                document.getElementById('prep-save-btn').disabled = false;
+                
+                let recipe = db.prepRecipes.find(r => r.name === val);
+                document.getElementById('prep-output-qty').textContent = recipe.outputQty + ' шт';
+                
+                let canCook = true;
+                let trs = recipe.ingredients.map(ing => {
+                    let stock = getStockQty(ing.name);
+                    if(stock < ing.qty) canCook = false;
+                    let color = stock < ing.qty ? 'text-danger fw-bold' : 'text-muted';
+                    return `<tr><td>${ing.name}</td><td class="text-center">${ing.qty}</td><td class="text-end ${color}">${stock}</td></tr>`;
+                }).join('');
+                document.getElementById('prep-ingredients-list').innerHTML = trs;
+                
+                document.getElementById('prep-warning').style.display = canCook ? 'none' : 'block';
+                document.getElementById('prep-save-btn').disabled = !canCook;
+            }
+        }
+
+        function openPrepRecipeModal() {
+            let val = document.getElementById('prep-select').value;
+            document.getElementById('prep-recipe-rows').innerHTML = '';
+            
+            if(val === 'ADD_NEW' || !val) {
+                document.getElementById('prep-recipe-title').textContent = 'Новый рецепт заготовки';
+                document.getElementById('prep-recipe-name').value = '';
+                document.getElementById('prep-recipe-name').disabled = false;
+                document.getElementById('prep-recipe-output').value = 5;
+                addRecipeIngredientRow('prep-recipe-rows');
+            } else {
+                document.getElementById('prep-recipe-title').textContent = 'Редактировать рецепт';
+                let recipe = db.prepRecipes.find(r => r.name === val);
+                document.getElementById('prep-recipe-name').value = recipe.name;
+                document.getElementById('prep-recipe-name').disabled = true;
+                document.getElementById('prep-recipe-output').value = recipe.outputQty;
+                
+                recipe.ingredients.forEach(ing => {
+                    let id = Date.now() + Math.floor(Math.random() * 1000);
+                    let options = getIngredientOptions().replace(`value="${ing.name}"`, `value="${ing.name}" selected`);
+                    let html = `
+                        <div class="row g-2 mb-2 align-items-center recipe-ing-row" id="ing-row-${id}">
+                            <div class="col-7"><select class="form-select rec-item">${options}</select></div>
+                            <div class="col-4"><div class="input-group"><input type="number" class="form-control rec-qty" value="${ing.qty}" min="0.1" step="0.5"><span class="input-group-text small px-1">шт</span></div></div>
+                            <div class="col-1 text-end"><button class="btn btn-link text-danger p-0" onclick="document.getElementById('ing-row-${id}').remove();"><i class="bi bi-trash"></i></button></div>
+                        </div>`;
+                    document.getElementById('prep-recipe-rows').insertAdjacentHTML('beforeend', html);
+                });
+            }
+            bootstrap.Modal.getInstance(document.getElementById('prepModal')).hide();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('prepRecipeModal')).show();
+        }
+
+        function savePrepRecipe() {
+            let name = document.getElementById('prep-recipe-name').value.trim();
+            let output = parseFloat(document.getElementById('prep-recipe-output').value) || 1;
+            if(!name) return;
+
+            let ingredients = [];
+            document.getElementById('prep-recipe-rows').querySelectorAll('.recipe-ing-row').forEach(row => {
+                let iName = row.querySelector('.rec-item').value;
+                let iQty = parseFloat(row.querySelector('.rec-qty').value) || 0;
+                if(iName && iQty > 0) ingredients.push({name: iName, qty: iQty});
+            });
+
+            if(ingredients.length === 0) return;
+
+            let existing = db.prepRecipes.find(r => r.name === name);
+            if(existing) {
+                existing.outputQty = output;
+                existing.ingredients = ingredients;
+            } else {
+                db.prepRecipes.push({ name, outputQty: output, ingredients });
+            }
+
+            syncDb();
+
+            closeRecipeModal('prepRecipeModal', 'prepModal');
+            updatePrepSelect();
+            document.getElementById('prep-select').value = name;
+            renderPrepRecipeView();
+        }
+
+        // --- КУХНЯ: БЛЮДА ---
+        function openDishModal() {
+            setModalDates('dish');
+            updateDishSelect();
+        }
+
+        function updateDishSelect() {
+            let sel = document.getElementById('dish-select');
+            let options = db.dishRecipes.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+            options += `<option value="ADD_NEW" class="fw-bold text-primary">+ Добавить блюдо</option>`;
+            sel.innerHTML = options || `<option value="ADD_NEW">+ Добавить блюдо</option>`;
+            renderDishRecipeView();
+        }
+
+        function renderDishRecipeView() {
+            let val = document.getElementById('dish-select').value;
+            let btn = document.getElementById('dish-action-btn');
+            let view = document.getElementById('dish-recipe-view');
+            
+            if(val === 'ADD_NEW' || !val) {
+                btn.innerHTML = '<i class="bi bi-plus-lg"></i>';
+                view.style.display = 'none';
+                document.getElementById('dish-save-btn').disabled = true;
+            } else {
+                btn.innerHTML = '<i class="bi bi-pencil"></i>';
+                view.style.display = 'block';
+                document.getElementById('dish-save-btn').disabled = false;
+                
+                let dish = db.dishRecipes.find(d => d.name === val);
+                let variantSel = document.getElementById('dish-variant-select');
+                variantSel.innerHTML = dish.recipes.map((r, i) => `<option value="${i}">${r.variantName}</option>`).join('');
+                updateDishIngredientsView();
+            }
+        }
+
+        function updateDishIngredientsView() {
+            let dishName = document.getElementById('dish-select').value;
+            let varIndex = document.getElementById('dish-variant-select').value;
+            if(!dishName || dishName === 'ADD_NEW') return;
+
+            let recipe = db.dishRecipes.find(d => d.name === dishName).recipes[varIndex];
+            document.getElementById('dish-output-qty').textContent = recipe.outputQty + ' шт';
+            
+            let canCook = true;
+            let trs = recipe.ingredients.map(ing => {
+                let stock = getStockQty(ing.name);
+                if(stock < ing.qty) canCook = false;
+                let color = stock < ing.qty ? 'text-danger fw-bold' : 'text-muted';
+                return `<tr><td>${ing.name}</td><td class="text-center">${ing.qty}</td><td class="text-end ${color}">${stock}</td></tr>`;
+            }).join('');
+            document.getElementById('dish-ingredients-list').innerHTML = trs;
+            
+            document.getElementById('dish-warning').style.display = canCook ? 'none' : 'block';
+            document.getElementById('dish-save-btn').disabled = !canCook;
+        }
+
+        function openDishRecipeModal() {
+            let val = document.getElementById('dish-select').value;
+            document.getElementById('dish-recipe-cards-container').innerHTML = '';
+            currentDishRecipeCardCount = 0;
+            
+            if(val === 'ADD_NEW' || !val) {
+                document.getElementById('dish-recipe-title').textContent = 'Новое блюдо';
+                document.getElementById('dish-recipe-name').value = '';
+                document.getElementById('dish-recipe-name').disabled = false;
+                addDishRecipeCard();
+            } else {
+                document.getElementById('dish-recipe-title').textContent = 'Редактировать рецепты блюда';
+                let dish = db.dishRecipes.find(d => d.name === val);
+                document.getElementById('dish-recipe-name').value = dish.name;
+                document.getElementById('dish-recipe-name').disabled = true;
+                
+                dish.recipes.forEach(rec => addDishRecipeCard(rec));
+            }
+            bootstrap.Modal.getInstance(document.getElementById('dishModal')).hide();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('dishRecipeModal')).show();
+        }
+
+        function addDishRecipeCard(recipeData = null) {
+            currentDishRecipeCardCount++;
+            let cardId = currentDishRecipeCardCount;
+            let vName = recipeData ? recipeData.variantName : `Базовый`;
+            let vOut = recipeData ? recipeData.outputQty : 8;
+            
+            let html = `
+                <div class="recipe-card" id="dish-card-${cardId}">
+                    <div class="mb-2">
+                        <label class="small text-muted mb-1">Название рецепта</label>
+                        <input type="text" class="form-control card-variant-name" value="${vName}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">Кол-во порций на выходе</label>
+                        <input type="number" class="form-control w-50 card-variant-output" value="${vOut}" min="1">
+                    </div>
+                    <label class="small text-muted mb-2">Ингредиенты</label>
+                    <div id="dish-card-rows-${cardId}"></div>
+                    <button class="btn btn-link text-decoration-none text-muted p-0 small" onclick="addRecipeIngredientRow('dish-card-rows-${cardId}')">+ Добавить ингредиент</button>
+                    <div class="text-end mt-2"><button class="btn btn-sm btn-outline-danger py-0" onclick="document.getElementById('dish-card-${cardId}').remove()"><i class="bi bi-trash"></i> Удалить карточку</button></div>
+                </div>`;
+            document.getElementById('dish-recipe-cards-container').insertAdjacentHTML('beforeend', html);
+            
+            if(recipeData) {
+                recipeData.ingredients.forEach(ing => {
+                    let id = Date.now() + Math.floor(Math.random() * 1000);
+                    let options = getIngredientOptions().replace(`value="${ing.name}"`, `value="${ing.name}" selected`);
+                    let rHtml = `
+                        <div class="row g-2 mb-2 align-items-center recipe-ing-row" id="ing-row-${id}">
+                            <div class="col-7"><select class="form-select rec-item">${options}</select></div>
+                            <div class="col-4"><div class="input-group"><input type="number" class="form-control rec-qty" value="${ing.qty}" min="0.1" step="0.5"><span class="input-group-text small px-1">шт</span></div></div>
+                            <div class="col-1 text-end"><button class="btn btn-link text-danger p-0" onclick="document.getElementById('ing-row-${id}').remove();"><i class="bi bi-trash"></i></button></div>
+                        </div>`;
+                    document.getElementById(`dish-card-rows-${cardId}`).insertAdjacentHTML('beforeend', rHtml);
+                });
+            } else {
+                addRecipeIngredientRow(`dish-card-rows-${cardId}`);
+            }
+        }
+
+        function saveDishRecipe() {
+            let name = document.getElementById('dish-recipe-name').value.trim();
+            if(!name) return;
+
+            let recipes = [];
+            document.querySelectorAll('.recipe-card').forEach(card => {
+                let vName = card.querySelector('.card-variant-name').value.trim() || 'Без названия';
+                let vOut = parseFloat(card.querySelector('.card-variant-output').value) || 1;
+                let ingredients = [];
+                
+                card.querySelectorAll('.recipe-ing-row').forEach(row => {
+                    let iName = row.querySelector('.rec-item').value;
+                    let iQty = parseFloat(row.querySelector('.rec-qty').value) || 0;
+                    if(iName && iQty > 0) ingredients.push({name: iName, qty: iQty});
+                });
+                if(ingredients.length > 0) recipes.push({ variantName: vName, outputQty: vOut, ingredients });
+            });
+
+            if(recipes.length === 0) return;
+
+            let existing = db.dishRecipes.find(d => d.name === name);
+            if(existing) {
+                existing.recipes = recipes;
+            } else {
+                db.dishRecipes.push({ name, recipes });
+            }
+
+            syncDb();
+
+            closeRecipeModal('dishRecipeModal', 'dishModal');
+            updateDishSelect();
+            document.getElementById('dish-select').value = name;
+            renderDishRecipeView();
+        }
+
+        // --- КУХНЯ: СОХРАНЕНИЕ ГОТОВКИ ---
+        function saveKitchenAction(type) { // type = 'prep' | 'dish'
+            let d = document.getElementById(`${type}-day`).value || 10;
+            let s = document.getElementById(`${type}-season`).value;
+            let c = document.getElementById(`${type}-cycle`).value || 'xx1';
+            let dateStr = getDateStr(d, s, c);
+            updateLastUsedDate(d, s, c);
+            
+            let itemName = document.getElementById(`${type}-select`).value;
+            let recipe, outputQty, quality = null;
+            
+            if(type === 'prep') {
+                recipe = db.prepRecipes.find(r => r.name === itemName);
+                outputQty = recipe.outputQty;
+            } else {
+                let varIndex = document.getElementById('dish-variant-select').value;
+                recipe = db.dishRecipes.find(d => d.name === itemName).recipes[varIndex];
+                outputQty = recipe.outputQty;
+                quality = document.getElementById('dish-quality').value;
+            }
+
+            let itemsUsed = [];
+            let totalCost = 0;
+
+            recipe.ingredients.forEach(ing => {
+                let cost = deductFIFO(ing.name, ing.qty);
+                itemsUsed.push({ name: ing.name, qty: ing.qty, cost });
+                totalCost += cost;
+            });
+
+            let costPerItem = totalCost / outputQty;
+            let cat = type === 'prep' ? 'preps' : 'dishes';
+            db.stock.push({ name: itemName, qty: outputQty, price: costPerItem, category: cat });
+            
+            db.kitchenLog.push({ 
+                date: dateStr, 
+                type: type, 
+                outputName: itemName, 
+                outputQty: outputQty, 
+                costPerItem, 
+                totalCost, 
+                itemsUsed,
+                quality
+            });
+
+            syncDb();
+
+            bootstrap.Modal.getInstance(document.getElementById(`${type}Modal`)).hide();
+            updateUI();
+        }
+
+        // --- ПРОДАЖИ ---
+        let saleRowCount = 0;
+        
+        function openSaleModal() {
+            setModalDates('sale');
+            document.getElementById('sale-rows-container').innerHTML = '';
+            addSaleRow();
+        }
+        
+        function addSaleRow() {
+            saleRowCount++;
+            // Ищем блюда, которые реально есть на складе
+            let inStockDishes = [...new Set(db.stock.filter(s => s.category === 'dishes' && s.qty > 0).map(s => s.name))];
+            let options = inStockDishes.map(d => `<option value="${d}">${d}</option>`).join('');
+            
+            if (!options) {
+                options = '<option value="" disabled selected>Нет блюд на складе</option>';
+            } else {
+                options = '<option value="" disabled selected>Выберите блюдо</option>' + options;
+            }
+            
+            let html = `
+                <div class="row g-2 mb-3 align-items-center sale-row" id="sale-row-${saleRowCount}">
+                    <div class="col-5">
+                        <select class="form-select sale-item" onchange="updateSaleRowMax(this)">${options}</select>
+                    </div>
+                    <div class="col-3">
+                        <div class="input-group">
+                            <input type="number" class="form-control sale-qty" value="1" min="1" oninput="validateSale()">
+                            <span class="input-group-text small px-1">шт</span>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="input-group">
+                            <input type="number" class="form-control sale-price" value="0" min="0" oninput="calcSaleTotal()">
+                            <span class="input-group-text small px-1">$</span>
+                        </div>
+                    </div>
+                    <div class="col-1 text-end">
+                        <button class="btn btn-link text-muted p-0" onclick="document.getElementById('sale-row-${saleRowCount}').remove(); validateSale();">
+                            <i class="bi bi-x-lg"></i>
                         </button>
                     </div>
-                </div>
-                <div id="cook-details" class="hidden">
-                    <div class="form-group">
-                        <label class="label-small">Рецепт</label>
-                        <select id="cook-recipe-select" class="input w-full"><option>Загрузка...</option></select>
-                    </div>
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label class="label-small">Качество</label>
-                            <select id="cook-quality" class="input w-full">
-                                <option>Великолепно</option>
-                                <option>Нормально</option>
-                                <option>Плохо</option>
-                            </select>
+                </div>`;
+            document.getElementById('sale-rows-container').insertAdjacentHTML('beforeend', html);
+            validateSale();
+        }
+
+        // Показывает, сколько выбраного блюда есть на складе
+        function updateSaleRowMax(selectEl) {
+            let row = selectEl.closest('.sale-row');
+            let name = selectEl.value;
+            let infoDiv = row.querySelector('.sale-stock-info');
+            let maxSpan = row.querySelector('.max-qty');
+            let qtyInput = row.querySelector('.sale-qty');
+            
+            if (name) {
+                let available = getStockQty(name);
+                maxSpan.textContent = available;
+                infoDiv.style.display = 'block';
+                qtyInput.max = available; // Устанавливаем атрибут max для стандартной валидации
+            }
+            validateSale();
+        }
+
+        // Проверяет все строки и блокирует кнопку сохранения, если есть перебор
+        function validateSale() {
+            let isValid = true;
+            let rows = document.querySelectorAll('.sale-row');
+            let saveBtn = document.querySelector('button[onclick="saveSale()"]');
+            
+            rows.forEach(row => {
+                let name = row.querySelector('.sale-item').value;
+                let qty = parseFloat(row.querySelector('.sale-qty').value) || 0;
+                let available = getStockQty(name);
+                let input = row.querySelector('.sale-qty');
+                
+                if (name && qty > available) {
+                    input.classList.add('is-invalid'); // Подсвечиваем поле красным (Bootstrap)
+                    isValid = false;
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+            
+            // Блокируем кнопку сохранения, если валидация не прошла
+            saveBtn.disabled = !isValid;
+            
+            // Заодно пересчитываем общую сумму
+            calcSaleTotal();
+        }
+
+        function calcSaleTotal() {
+            let totalIncome = 0;
+            document.querySelectorAll('.sale-row').forEach(row => {
+                let sel = row.querySelector('.sale-item');
+                if(sel && sel.value) {
+                    totalIncome += parseFloat(row.querySelector('.sale-price').value) || 0;
+                }
+            });
+            document.getElementById('sale-total-sum').textContent = totalIncome;
+        }
+
+        function saveSale() {
+            let d = document.getElementById('sale-day').value || 10;
+            let s = document.getElementById('sale-season').value;
+            let c = document.getElementById('sale-cycle').value || 'xx1';
+            let type = document.getElementById('sale-type').value;
+            let dateStr = getDateStr(d, s, c);
+            let canProceed = true;
+            document.querySelectorAll('.sale-row').forEach(row => {
+                let name = row.querySelector('.sale-item').value;
+                let qty = parseFloat(row.querySelector('.sale-qty').value) || 0;
+                if (name && qty > getStockQty(name)) canProceed = false;
+            });
+            
+            if (!canProceed) {
+                alert("Недостаточно товара на складе для совершения продажи!");
+                return;
+            }
+            updateLastUsedDate(d, s, c);
+            
+            let items = [], totalIncome = 0, totalExpense = 0;
+
+            document.querySelectorAll('.sale-row').forEach(row => {
+                let sel = row.querySelector('.sale-item');
+                if(!sel || !sel.value) return; // Пропускаем если нечего продавать
+                
+                let name = sel.value;
+                let qty = parseFloat(row.querySelector('.sale-qty').value) || 0;
+                let income = parseFloat(row.querySelector('.sale-price').value) || 0;
+                
+                if(qty > 0) {
+                    let expense = deductFIFO(name, qty);
+                    items.push({ name, qty, expense, income });
+                    totalIncome += income;
+                    totalExpense += expense;
+                }
+            });
+
+            if(items.length === 0) return;
+
+            let title = type === 'Ярмарка' ? 'Продажа на ярмарке' : 'Продажа в магазине';
+            db.transactions.push({ id: transIdCounter++, date: dateStr, type: 'Доход', title: title, amount: totalIncome, isManual: false });
+            db.salesLog.push({ type, date: dateStr, items, totalExpense, totalIncome, netProfit: totalIncome - totalExpense });
+
+            syncDb();
+
+            bootstrap.Modal.getInstance(document.getElementById('saleModal')).hide();
+            document.getElementById('sale-rows-container').innerHTML = '';
+            updateUI();
+        }
+
+        // --- РЕНДЕР ИНТЕРФЕЙСА ---
+        function updateUI() {
+            // 1. ГЛАВНАЯ
+            let inc = 0, exp = 0, transHtml = '';
+            db.transactions.slice().reverse().forEach((t) => {
+                if(t.type === 'Доход') inc += t.amount; else exp += t.amount;
+                let color = t.type === 'Доход' ? 'text-success' : 'text-danger';
+                let sign = t.type === 'Доход' ? '+' : '-';
+                
+                // Кнопка отображается ТОЛЬКО для ручных расходов (внести расход)
+                let showEditBtn = t.isManual ? '' : 'display: none;'; 
+                
+                transHtml += `
+                    <div class="history-card">
+                        <div class="d-flex justify-content-between text-muted small mb-2"><span>${t.type}</span><span>${t.date}</span></div>
+                        <div class="d-flex justify-content-between mb-2"><span class="fw-bold">${t.title}</span><span class="fw-bold ${color}">${sign} ${t.amount.toFixed(2)} $</span></div>
+                        <div class="text-end"><button class="btn btn-sm btn-light py-0 px-2" style="font-size:0.75rem; background:#f0f0f0; ${showEditBtn}" onclick="editExpense(${t.id})">редактировать</button></div>
+                    </div>`;
+            });
+            document.getElementById('ui-total-income').textContent = `${inc.toFixed(2)} $`;
+            document.getElementById('ui-total-expense').textContent = `${exp.toFixed(2)} $`;
+            document.getElementById('ui-net-profit').textContent = `${(inc - exp).toFixed(2)} $`;
+            
+            document.getElementById('main-empty-state').style.display = db.transactions.length ? 'none' : 'block';
+            document.getElementById('transactions-list').style.display = db.transactions.length ? 'block' : 'none';
+            document.getElementById('transactions-list').innerHTML = transHtml;
+
+            // 2. ЗАКУПКИ
+            let purHtml = '';
+            db.purchasesLog.slice().reverse().forEach((p) => {
+                let rows = p.items.map(i => `<tr><td>${i.name}</td><td class="text-end">${i.qty} шт</td><td class="text-end">${i.price.toFixed(2)} $</td></tr>`).join('');
+                if(p.delivery > 0) rows += `<tr><td class="text-muted">Доставка</td><td></td><td class="text-end text-muted">${p.delivery} $</td></tr>`;
+                purHtml += `
+                    <div class="history-card">
+                        <div class="text-end mb-2"><span class="badge bg-light text-dark border">${p.date}</span></div>
+                        <table class="table-custom mb-3"><thead><tr><th>Продукт</th><th class="text-end">Кол-во</th><th class="text-end">Цена за 1</th></tr></thead><tbody>${rows}</tbody></table>
+                        <div class="d-flex justify-content-between bg-light p-2 rounded mb-1"><span class="fw-bold">ИТОГО</span><span class="fw-bold text-danger">- ${p.total.toFixed(2)} $</span></div>
+                    </div>`;
+            });
+            document.getElementById('purchases-empty-state').style.display = db.purchasesLog.length ? 'none' : 'block';
+            document.getElementById('purchases-list').style.display = db.purchasesLog.length ? 'block' : 'none';
+            document.getElementById('purchases-list').innerHTML = purHtml;
+
+            // 3. СКЛАД
+            let currentStock = db.stock.filter(s => s.category === currentStockCategory && s.qty > 0);
+            let groupedStock = {};
+            currentStock.forEach(s => {
+                let key = s.name + '_' + s.price.toFixed(2);
+                if(!groupedStock[key]) groupedStock[key] = { name: s.name, qty: 0, price: s.price };
+                groupedStock[key].qty += s.qty;
+            });
+            let displayStock = Object.values(groupedStock);
+            displayStock.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+
+            if(displayStock.length > 0) {
+                document.getElementById('stock-empty-state').style.display = 'none';
+                document.getElementById('stock-table').style.display = 'table';
+                document.getElementById('stock-list').innerHTML = displayStock.map(s => 
+                    `<tr><td class="fw-medium">${s.name}</td><td class="text-end">${s.qty} шт</td><td class="text-end text-muted">${s.price.toFixed(2)} $</td></tr>`
+                ).join('');
+            } else {
+                document.getElementById('stock-empty-state').style.display = 'block';
+                document.getElementById('stock-table').style.display = 'none';
+            }
+
+            // 4. КУХНЯ
+            let kitHtml = '';
+            db.kitchenLog.slice().reverse().forEach((k) => {
+                let rows = k.itemsUsed.map(i => `<tr><td class="text-muted">${i.name}</td><td class="text-center text-muted">${i.qty} шт</td><td class="text-end text-muted">${i.cost.toFixed(2)}$</td></tr>`).join('');
+                let qualityBadge = k.type === 'dish' ? `<span class="badge bg-secondary opacity-75">${k.quality}</span>` : `<span class="badge bg-light text-dark border">Заготовка</span>`;
+                
+                kitHtml += `
+                    <div class="history-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div><span class="fw-bold fs-6 d-block">${k.outputName}</span>${qualityBadge}</div>
+                            <span class="badge bg-light text-dark border">${k.date}</span>
                         </div>
-                        <div class="form-group">
-                            <label class="label-small">Кол-во</label>
-                            <div class="input-unit-wrapper" data-unit="шт">
-                                <input type="number" id="cook-qty" class="input w-full" value="1">
-                            </div>
+                        <div class="mb-2 small">
+                            <span class="text-success fw-bold">+ ${k.outputQty} шт</span> 
+                            <span class="text-muted ms-2">(себест: ${k.costPerItem.toFixed(2)}$/шт)</span>
+                            <div class="text-muted mt-1">Всего расходов: ${k.totalCost.toFixed(2)}$</div>
                         </div>
-                    </div>
-                </div>
-                <div class="grid-2 mt-4">
-                    <button class="btn btn-secondary" onclick="closeModal('modal-cook')">Отмена</button>
-                    <button class="btn btn-primary" onclick="saveCooking()">Сохранить</button>
-                </div>
-            </div>
-        </div>
+                        <table class="table-custom mb-1" style="font-size:0.8rem;"><tbody>${rows}</tbody></table>
+                    </div>`;
+            });
+            document.getElementById('kitchen-empty-state').style.display = db.kitchenLog.length ? 'none' : 'block';
+            document.getElementById('kitchen-list').style.display = db.kitchenLog.length ? 'block' : 'none';
+            document.getElementById('kitchen-list').innerHTML = kitHtml;
 
-        <div id="modal-dish-edit" class="modal-overlay" style="z-index: 250;">
-            <div class="modal-content">
-                <h2 id="dish-modal-title">Новое блюдо</h2>
-                <div class="form-group">
-                    <label class="label-small">Название блюда</label>
-                    <input type="text" id="dish-name-input" class="input w-full" placeholder="Название">
-                </div>
-                <div class="form-group">
-                    <label class="label-small">Рецепты</label>
-                    <div id="recipes-container"></div>
-                    <button class="text-btn mt-2" onclick="addRecipeCard()">+ Добавить вариант рецепта</button>
-                </div>
-                <div class="grid-2 mt-4">
-                    <button class="btn btn-secondary" onclick="closeModal('modal-dish-edit')">Отмена</button>
-                    <button class="btn btn-primary" onclick="saveDishEdit()">Сохранить блюдо</button>
-                </div>
-            </div>
-        </div>
+            // 5. ПРОДАЖИ
+            let saleHtml = '';
+            db.salesLog.slice().reverse().forEach((s) => {
+                let rows = s.items.map(i => `<tr><td>${i.name}</td><td class="text-center">${i.qty} шт</td><td class="text-end text-muted">${i.expense.toFixed(2)}$</td><td class="text-end">${i.income.toFixed(2)}$</td></tr>`).join('');
+                saleHtml += `
+                    <div class="history-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 fw-bold">${s.type}</h6><span class="badge bg-light text-dark border">${s.date}</span>
+                        </div>
+                        <table class="table-custom mb-3">
+                            <thead><tr><th>Блюдо</th><th class="text-center">Кол-во</th><th class="text-end">Расход</th><th class="text-end">Доход</th></tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                        <div class="d-flex justify-content-between bg-light p-2 rounded mb-1"><span class="fw-bold">ИТОГО</span><span class="fw-bold text-muted">${s.totalExpense.toFixed(2)}$ &nbsp;&nbsp; <span class="text-dark">${s.totalIncome.toFixed(2)}$</span></span></div>
+                        <div class="d-flex justify-content-between p-2 mb-1"><span class="fw-bold">ЧИСТАЯ ПРИБЫЛЬ</span><span class="fw-bold text-success">${s.netProfit.toFixed(2)} $</span></div>
+                    </div>`;
+            });
+            document.getElementById('sales-empty-state').style.display = db.salesLog.length ? 'none' : 'block';
+            document.getElementById('sales-list').style.display = db.salesLog.length ? 'block' : 'none';
+            document.getElementById('sales-list').innerHTML = saleHtml;
+        }
 
-        <div id="modal-sale" class="modal-overlay">
-            <div class="modal-content">
-                <h2>Новая продажа</h2>
-                <div class="form-group">
-                    <label class="label-small">Дата</label>
-                    <div class="date-inputs">
-                        <input type="number" id="sale-day" placeholder="ДД" class="input">
-                        <select id="sale-season" class="input"><option>Весна</option><option>Лето</option><option>Осень</option><option>Зима</option></select>
-                        <input type="text" id="sale-cycle" placeholder="хх1" class="input">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="label-small">Тип продажи</label>
-                    <select id="sale-type" class="input w-full"><option>Ярмарка</option><option>Магазин</option></select>
-                </div>
-                <div class="form-group">
-                    <label class="label-small">Проданные блюда</label>
-                    <div id="sale-items-container" class="dynamic-list"></div>
-                    <button class="text-btn mt-2" onclick="addSaleRow()">+ Добавить блюдо</button>
-                </div>
-                <div class="grid-2 mt-4">
-                    <button class="btn btn-secondary" onclick="closeModal('modal-sale')">Отмена</button>
-                    <button class="btn btn-primary" onclick="saveSale()">Сохранить</button>
-                </div>
-            </div>
-        </div>
-
-    </div>
-    <script src="app.js"></script>
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchDb(); // Сначала качаем базу
+            addPurchaseRow();
+        });
+    </script>
 </body>
 </html>
