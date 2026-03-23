@@ -91,7 +91,11 @@
                 <div class="col-6"><div class="card card-expense p-3"><div class="text-white-50 small">Расходы</div><h4 class="mb-0 fw-bold" id="ui-total-expense">0 $</h4></div></div>
             </div>
 
-            <h5 class="fw-bold mb-3">История транзакций</h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">История транзакций</h5>
+                <button class="btn btn-sm btn-outline-danger" onclick="undoLastAction()" title="Отменить последнее действие"><i class="bi bi-arrow-counterclockwise"></i> Отменить</button>
+            </div>
+            
             <div id="main-empty-state" class="empty-state">
                 <i class="bi bi-wallet2"></i>
                 <p>Начните вести учет прибыли!<br>Расходы на продукты и доходы с продаж подтянутся автоматически.</p>
@@ -114,22 +118,6 @@
                 <button class="btn fab-btn text-dark" data-bs-toggle="modal" data-bs-target="#purchaseModal" onclick="setModalDates('pur')">
                     <i class="bi bi-plus-circle"></i> Сделать закупку
                 </button>
-            </div>
-        </div>
-
-        <div id="tab-stock" class="tab-content">
-            <h4 class="mb-3 fw-bold">Остатки</h4>
-            <div class="stock-tabs">
-                <div class="stock-tab active" onclick="switchStockCategory('products', this)">Продукты</div>
-                <div class="stock-tab" onclick="switchStockCategory('preps', this)">Заготовки</div>
-                <div class="stock-tab" onclick="switchStockCategory('dishes', this)">Блюда</div>
-            </div>
-            <div class="history-card" id="stock-container">
-                <div id="stock-empty-state" class="empty-state py-3"><p class="mb-0 small">Склад пуст</p></div>
-                <table class="table-custom" id="stock-table" style="display: none;">
-                    <thead><tr><th>Название</th><th class="text-end">Единиц</th><th class="text-end">Цена за 1</th></tr></thead>
-                    <tbody id="stock-list"></tbody>
-                </table>
             </div>
         </div>
 
@@ -159,15 +147,31 @@
                 </button>
             </div>
         </div>
+
+        <div id="tab-stock" class="tab-content">
+            <h4 class="mb-3 fw-bold">Остатки</h4>
+            <div class="stock-tabs">
+                <div class="stock-tab active" onclick="switchStockCategory('products', this)">Продукты</div>
+                <div class="stock-tab" onclick="switchStockCategory('preps', this)">Заготовки</div>
+                <div class="stock-tab" onclick="switchStockCategory('dishes', this)">Блюда</div>
+            </div>
+            <div class="history-card" id="stock-container">
+                <div id="stock-empty-state" class="empty-state py-3"><p class="mb-0 small">Склад пуст</p></div>
+                <table class="table-custom" id="stock-table" style="display: none;">
+                    <thead><tr><th>Название</th><th class="text-end">Единиц</th><th class="text-end">Цена за 1</th></tr></thead>
+                    <tbody id="stock-list"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <nav class="navbar fixed-bottom bottom-nav">
         <div class="container-fluid d-flex justify-content-between px-2">
             <div class="nav-item-custom active" onclick="switchTab('tab-main', this)"><i class="bi bi-house-door-fill"></i> Главная</div>
             <div class="nav-item-custom" onclick="switchTab('tab-purchases', this)"><i class="bi bi-cart-fill"></i> Закупки</div>
-            <div class="nav-item-custom" onclick="switchTab('tab-stock', this)"><i class="bi bi-box-seam-fill"></i> Склад</div>
             <div class="nav-item-custom" onclick="switchTab('tab-kitchen', this)"><i class="bi bi-fire"></i> Кухня</div>
             <div class="nav-item-custom" onclick="switchTab('tab-sales', this)"><i class="bi bi-database-fill-add"></i> Продажи</div>
+            <div class="nav-item-custom" onclick="switchTab('tab-stock', this)"><i class="bi bi-box-seam-fill"></i> Склад</div>
         </div>
     </nav>
 
@@ -268,10 +272,17 @@
                         <label class="small text-muted mb-1">Название заготовки</label>
                         <input type="text" class="form-control" id="prep-recipe-name">
                     </div>
-                    <div class="mb-4">
-                        <label class="small text-muted mb-1">Кол-во порций (выход)</label>
-                        <input type="number" class="form-control w-50" id="prep-recipe-output" value="1" min="1">
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <label class="small text-muted mb-1">Порции (выход)</label>
+                            <input type="number" class="form-control" id="prep-recipe-output" value="1" min="1">
+                        </div>
+                        <div class="col-6">
+                            <label class="small text-muted mb-1">Доп. стоимость ($)</label>
+                            <input type="number" class="form-control" id="prep-recipe-extra-cost" value="0" min="0">
+                        </div>
                     </div>
+                    
                     <label class="small text-muted mb-2">Ингредиенты</label>
                     <div id="prep-recipe-rows"></div>
                     <button class="btn btn-link text-decoration-none text-muted p-0 mb-4 small" onclick="addRecipeIngredientRow('prep-recipe-rows')">+ Добавить продукт</button>
@@ -311,12 +322,6 @@
                             <thead><tr><th>Ингредиент</th><th class="text-center">Кол-во</th><th class="text-end">На складе</th></tr></thead>
                             <tbody id="dish-ingredients-list"></tbody>
                         </table>
-                        <label class="small text-muted mb-1 mt-2">Качество</label>
-                        <select class="form-select" id="dish-quality">
-                            <option value="Великолепно">Великолепно</option>
-                            <option value="Нормально" selected>Нормально</option>
-                            <option value="Плохо">Плохо</option>
-                        </select>
                     </div>
 
                     <div class="d-flex gap-2 mt-4">
@@ -478,22 +483,9 @@
             updateUI();
         }
 
-        function simulateFIFO(name, qtyNeeded) {
-            let cost = 0; let remaining = qtyNeeded;
-            for(let i = 0; i < db.stock.length; i++) {
-                if(remaining <= 0) break;
-                let s = db.stock[i];
-                if(s.name === name && s.qty > 0) {
-                    let take = Math.min(s.qty, remaining);
-                    remaining -= take;
-                    cost += take * s.price;
-                }
-            }
-            return cost;
-        }
-
         function deductFIFO(name, qtyNeeded) {
             let cost = 0; let remaining = qtyNeeded;
+            let trace = [];
             for(let i = 0; i < db.stock.length; i++) {
                 if(remaining <= 0) break;
                 let s = db.stock[i];
@@ -502,9 +494,10 @@
                     s.qty -= take;
                     remaining -= take;
                     cost += take * s.price;
+                    trace.push({ index: i, qtyTaken: take });
                 }
             }
-            return cost;
+            return { cost, trace };
         }
 
         function openExpenseModal() {
@@ -555,7 +548,8 @@
                 }
                 delete document.getElementById('expenseModal').dataset.editId;
             } else {
-                db.transactions.push({ id: transIdCounter++, date: dateStr, type: 'Расход', title: name, amount: amount, isManual: true });
+                let ts = Date.now();
+                db.transactions.push({ id: transIdCounter++, date: dateStr, type: 'Расход', title: name, amount: amount, isManual: true, ts });
             }
             
             syncDb();
@@ -568,7 +562,6 @@
         function addPurchaseRow() {
             const container = document.getElementById('purchase-rows-container');
             const row = document.createElement('div');
-            // FIX: изменен класс на pur-row
             row.className = 'pur-row row g-2 mb-2 align-items-center';
             
             let catalogOptions = '<option value="" selected disabled>Выберите продукт</option>';
@@ -576,7 +569,6 @@
                 catalogOptions += `<option value="${item.id}">${item.name}</option>`;
             });
         
-            // FIX: изменена разметка инпутов (добавлены input-group), обновлены классы и функции oninput
             row.innerHTML = `
                 <div class="col-5">
                     <select class="form-select pur-item" required onchange="calcPurchaseTotal()">
@@ -585,13 +577,13 @@
                 </div>
                 <div class="col-3">
                     <div class="input-group">
-                        <input type="number" class="form-control pur-qty" placeholder="Кол-во" min="1" value="1" required oninput="calcPurchaseTotal()">
+                        <input type="number" class="form-control pur-qty" placeholder="Кол-во" min="1" required oninput="calcPurchaseTotal()">
                         <span class="input-group-text small px-1">шт</span>
                     </div>
                 </div>
                 <div class="col-3">
                     <div class="input-group">
-                        <input type="number" class="form-control pur-price" placeholder="Цена" step="0.01" required oninput="calcPurchaseTotal()">
+                        <input type="number" class="form-control pur-price" placeholder="Цена" step="0.01" value="" required oninput="calcPurchaseTotal()">
                         <span class="input-group-text small px-1">$</span>
                     </div>
                 </div>
@@ -641,6 +633,7 @@
             if(totalQty === 0) return;
             
             let deliveryPerItem = delivery > 0 ? (delivery / totalQty) : 0;
+            let ts = Date.now();
 
             document.querySelectorAll('.pur-row').forEach(row => {
                 let sel = row.querySelector('.pur-item');
@@ -655,13 +648,13 @@
                     finalPricePerItem = Math.round(finalPricePerItem * 100) / 100;
 
                     items.push({ name, qty, price: finalPricePerItem });
-                    db.stock.push({ name, qty, price: finalPricePerItem, category: 'products' });
+                    db.stock.push({ name, qty, price: finalPricePerItem, category: 'products', ts });
                 }
             });
 
             let total = sumWithoutDelivery + delivery;
-            db.transactions.push({ id: transIdCounter++, date: dateStr, type: 'Расход', title: 'Закупка продуктов', amount: total, isManual: false });
-            db.purchasesLog.push({ date: dateStr, items, delivery, total });
+            db.transactions.push({ id: transIdCounter++, date: dateStr, type: 'Расход', title: 'Закупка продуктов', amount: total, isManual: false, ts });
+            db.purchasesLog.push({ date: dateStr, items, delivery, total, ts });
 
             syncDb();
 
@@ -701,9 +694,11 @@
 
         function updatePrepSelect() {
             let sel = document.getElementById('prep-select');
-            let options = db.prepRecipes.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-            options += `<option value="ADD_NEW" class="fw-bold text-primary">+ Добавить заготовку</option>`;
-            sel.innerHTML = options || `<option value="ADD_NEW">+ Добавить заготовку</option>`;
+            let options = '<option value="ADD_NEW" class="fw-bold text-primary" selected>+ Добавить заготовку</option>';
+            for (let i = db.prepRecipes.length - 1; i >= 0; i--) {
+                options += `<option value="${db.prepRecipes[i].name}">${db.prepRecipes[i].name}</option>`;
+            }
+            sel.innerHTML = options;
             renderPrepRecipeView();
         }
 
@@ -731,6 +726,11 @@
                     let color = stock < ing.qty ? 'text-danger fw-bold' : 'text-muted';
                     return `<tr><td>${ing.name}</td><td class="text-center">${ing.qty}</td><td class="text-end ${color}">${stock}</td></tr>`;
                 }).join('');
+                
+                if (recipe.extraCost > 0) {
+                    trs += `<tr><td><em>Доп. расходы</em></td><td class="text-center">-</td><td class="text-end text-muted">${recipe.extraCost}$</td></tr>`;
+                }
+                
                 document.getElementById('prep-ingredients-list').innerHTML = trs;
                 
                 document.getElementById('prep-warning').style.display = canCook ? 'none' : 'block';
@@ -747,6 +747,7 @@
                 document.getElementById('prep-recipe-name').value = '';
                 document.getElementById('prep-recipe-name').disabled = false;
                 document.getElementById('prep-recipe-output').value = 5;
+                document.getElementById('prep-recipe-extra-cost').value = 0;
                 addRecipeIngredientRow('prep-recipe-rows');
             } else {
                 document.getElementById('prep-recipe-title').textContent = 'Редактировать рецепт';
@@ -754,6 +755,7 @@
                 document.getElementById('prep-recipe-name').value = recipe.name;
                 document.getElementById('prep-recipe-name').disabled = true;
                 document.getElementById('prep-recipe-output').value = recipe.outputQty;
+                document.getElementById('prep-recipe-extra-cost').value = recipe.extraCost || 0;
                 
                 recipe.ingredients.forEach(ing => {
                     let id = Date.now() + Math.floor(Math.random() * 1000);
@@ -774,6 +776,7 @@
         function savePrepRecipe() {
             let name = document.getElementById('prep-recipe-name').value.trim();
             let output = parseFloat(document.getElementById('prep-recipe-output').value) || 1;
+            let extraCost = parseFloat(document.getElementById('prep-recipe-extra-cost').value) || 0;
             if(!name) return;
 
             let ingredients = [];
@@ -783,14 +786,15 @@
                 if(iName && iQty > 0) ingredients.push({name: iName, qty: iQty});
             });
 
-            if(ingredients.length === 0) return;
+            if(ingredients.length === 0 && extraCost === 0) return;
 
             let existing = db.prepRecipes.find(r => r.name === name);
             if(existing) {
                 existing.outputQty = output;
                 existing.ingredients = ingredients;
+                existing.extraCost = extraCost;
             } else {
-                db.prepRecipes.push({ name, outputQty: output, ingredients });
+                db.prepRecipes.push({ name, outputQty: output, ingredients, extraCost });
             }
 
             syncDb();
@@ -808,9 +812,11 @@
 
         function updateDishSelect() {
             let sel = document.getElementById('dish-select');
-            let options = db.dishRecipes.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
-            options += `<option value="ADD_NEW" class="fw-bold text-primary">+ Добавить блюдо</option>`;
-            sel.innerHTML = options || `<option value="ADD_NEW">+ Добавить блюдо</option>`;
+            let options = '<option value="ADD_NEW" class="fw-bold text-primary" selected>+ Добавить блюдо</option>';
+            for(let i = db.dishRecipes.length - 1; i >= 0; i--) {
+                options += `<option value="${db.dishRecipes[i].name}">${db.dishRecipes[i].name}</option>`;
+            }
+            sel.innerHTML = options;
             renderDishRecipeView();
         }
 
@@ -850,6 +856,11 @@
                 let color = stock < ing.qty ? 'text-danger fw-bold' : 'text-muted';
                 return `<tr><td>${ing.name}</td><td class="text-center">${ing.qty}</td><td class="text-end ${color}">${stock}</td></tr>`;
             }).join('');
+            
+            if (recipe.extraCost > 0) {
+                trs += `<tr><td><em>Доп. расходы</em></td><td class="text-center">-</td><td class="text-end text-muted">${recipe.extraCost}$</td></tr>`;
+            }
+
             document.getElementById('dish-ingredients-list').innerHTML = trs;
             
             document.getElementById('dish-warning').style.display = canCook ? 'none' : 'block';
@@ -883,6 +894,7 @@
             let cardId = currentDishRecipeCardCount;
             let vName = recipeData ? recipeData.variantName : `Базовый`;
             let vOut = recipeData ? recipeData.outputQty : 8;
+            let vCost = recipeData ? (recipeData.extraCost || 0) : 0;
             
             let html = `
                 <div class="recipe-card" id="dish-card-${cardId}">
@@ -890,9 +902,15 @@
                         <label class="small text-muted mb-1">Название рецепта</label>
                         <input type="text" class="form-control card-variant-name" value="${vName}">
                     </div>
-                    <div class="mb-3">
-                        <label class="small text-muted mb-1">Кол-во порций на выходе</label>
-                        <input type="number" class="form-control w-50 card-variant-output" value="${vOut}" min="1">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="small text-muted mb-1">Порции (выход)</label>
+                            <input type="number" class="form-control card-variant-output" value="${vOut}" min="1">
+                        </div>
+                        <div class="col-6">
+                            <label class="small text-muted mb-1">Доп. стоимость ($)</label>
+                            <input type="number" class="form-control card-variant-extra-cost" value="${vCost}" min="0">
+                        </div>
                     </div>
                     <label class="small text-muted mb-2">Ингредиенты</label>
                     <div id="dish-card-rows-${cardId}"></div>
@@ -901,7 +919,7 @@
                 </div>`;
             document.getElementById('dish-recipe-cards-container').insertAdjacentHTML('beforeend', html);
             
-            if(recipeData) {
+            if(recipeData && recipeData.ingredients) {
                 recipeData.ingredients.forEach(ing => {
                     let id = Date.now() + Math.floor(Math.random() * 1000);
                     let options = getIngredientOptions().replace(`value="${ing.name}"`, `value="${ing.name}" selected`);
@@ -926,6 +944,7 @@
             document.querySelectorAll('.recipe-card').forEach(card => {
                 let vName = card.querySelector('.card-variant-name').value.trim() || 'Без названия';
                 let vOut = parseFloat(card.querySelector('.card-variant-output').value) || 1;
+                let vCost = parseFloat(card.querySelector('.card-variant-extra-cost').value) || 0;
                 let ingredients = [];
                 
                 card.querySelectorAll('.recipe-ing-row').forEach(row => {
@@ -933,7 +952,9 @@
                     let iQty = parseFloat(row.querySelector('.rec-qty').value) || 0;
                     if(iName && iQty > 0) ingredients.push({name: iName, qty: iQty});
                 });
-                if(ingredients.length > 0) recipes.push({ variantName: vName, outputQty: vOut, ingredients });
+                if(ingredients.length > 0 || vCost > 0) {
+                    recipes.push({ variantName: vName, outputQty: vOut, extraCost: vCost, ingredients });
+                }
             });
 
             if(recipes.length === 0) return;
@@ -961,7 +982,7 @@
             updateLastUsedDate(d, s, c);
             
             let itemName = document.getElementById(`${type}-select`).value;
-            let recipe, outputQty, quality = null;
+            let recipe, outputQty;
             
             if(type === 'prep') {
                 recipe = db.prepRecipes.find(r => r.name === itemName);
@@ -970,21 +991,30 @@
                 let varIndex = document.getElementById('dish-variant-select').value;
                 recipe = db.dishRecipes.find(d => d.name === itemName).recipes[varIndex];
                 outputQty = recipe.outputQty;
-                quality = document.getElementById('dish-quality').value;
             }
 
+            let ts = Date.now();
             let itemsUsed = [];
             let totalCost = 0;
 
-            recipe.ingredients.forEach(ing => {
-                let cost = deductFIFO(ing.name, ing.qty);
-                itemsUsed.push({ name: ing.name, qty: ing.qty, cost });
-                totalCost += cost;
-            });
+            if (recipe.ingredients) {
+                recipe.ingredients.forEach(ing => {
+                    let fifo = deductFIFO(ing.name, ing.qty);
+                    itemsUsed.push({ name: ing.name, qty: ing.qty, cost: fifo.cost, trace: fifo.trace });
+                    totalCost += fifo.cost;
+                });
+            }
+
+            let extraCost = recipe.extraCost || 0;
+            totalCost += extraCost;
+
+            if (extraCost > 0) {
+                db.transactions.push({ id: transIdCounter++, date: dateStr, type: 'Расход', title: 'Приготовление: ' + itemName, amount: extraCost, isManual: false, ts });
+            }
 
             let costPerItem = totalCost / outputQty;
             let cat = type === 'prep' ? 'preps' : 'dishes';
-            db.stock.push({ name: itemName, qty: outputQty, price: costPerItem, category: cat });
+            db.stock.push({ name: itemName, qty: outputQty, price: costPerItem, category: cat, ts });
             
             db.kitchenLog.push({ 
                 date: dateStr, 
@@ -994,7 +1024,8 @@
                 costPerItem, 
                 totalCost, 
                 itemsUsed,
-                quality
+                extraCost,
+                ts
             });
 
             syncDb();
@@ -1029,13 +1060,13 @@
                     </div>
                     <div class="col-3">
                         <div class="input-group">
-                            <input type="number" class="form-control sale-qty" value="1" min="1" oninput="validateSale()">
+                            <input type="number" class="form-control sale-qty" value="" min="1" placeholder="Кол-во" oninput="validateSale()">
                             <span class="input-group-text small px-1">шт</span>
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="input-group">
-                            <input type="number" class="form-control sale-price" value="0" min="0" oninput="calcSaleTotal()">
+                            <input type="number" class="form-control sale-price" value="" min="0" placeholder="Цена" oninput="calcSaleTotal()">
                             <span class="input-group-text small px-1">$</span>
                         </div>
                     </div>
@@ -1119,6 +1150,7 @@
             updateLastUsedDate(d, s, c);
             
             let items = [], totalIncome = 0, totalExpense = 0;
+            let ts = Date.now();
 
             document.querySelectorAll('.sale-row').forEach(row => {
                 let sel = row.querySelector('.sale-item');
@@ -1129,23 +1161,80 @@
                 let income = parseFloat(row.querySelector('.sale-price').value) || 0;
                 
                 if(qty > 0) {
-                    let expense = deductFIFO(name, qty);
-                    items.push({ name, qty, expense, income });
+                    let fifo = deductFIFO(name, qty);
+                    items.push({ name, qty, expense: fifo.cost, income, trace: fifo.trace });
                     totalIncome += income;
-                    totalExpense += expense;
+                    totalExpense += fifo.cost;
                 }
             });
 
             if(items.length === 0) return;
 
             let title = type === 'Ярмарка' ? 'Продажа на ярмарке' : 'Продажа в магазине';
-            db.transactions.push({ id: transIdCounter++, date: dateStr, type: 'Доход', title: title, amount: totalIncome, isManual: false });
-            db.salesLog.push({ type, date: dateStr, items, totalExpense, totalIncome, netProfit: totalIncome - totalExpense });
+            db.transactions.push({ id: transIdCounter++, date: dateStr, type: 'Доход', title: title, amount: totalIncome, isManual: false, ts });
+            db.salesLog.push({ type, date: dateStr, items, totalExpense, totalIncome, netProfit: totalIncome - totalExpense, ts });
 
             syncDb();
 
             bootstrap.Modal.getInstance(document.getElementById('saleModal')).hide();
             document.getElementById('sale-rows-container').innerHTML = '';
+            updateUI();
+        }
+
+        async function undoLastAction() {
+            if(!confirm('Отменить последнее действие? Это безвозвратно удалит запись и вернет продукты/деньги. Поддерживаются только действия, совершенные после обновления системы.')) return;
+            
+            let latestTs = 0;
+            let logType = null;
+            
+            let pLog = db.purchasesLog[db.purchasesLog.length - 1];
+            if(pLog && pLog.ts > latestTs) { latestTs = pLog.ts; logType = 'purchase'; }
+            
+            let sLog = db.salesLog[db.salesLog.length - 1];
+            if(sLog && sLog.ts > latestTs) { latestTs = sLog.ts; logType = 'sale'; }
+            
+            let kLog = db.kitchenLog[db.kitchenLog.length - 1];
+            if(kLog && kLog.ts > latestTs) { latestTs = kLog.ts; logType = 'kitchen'; }
+            
+            let manualTrans = db.transactions.filter(t => t.isManual);
+            let tLog = manualTrans[manualTrans.length - 1];
+            if(tLog && tLog.ts > latestTs) { latestTs = tLog.ts; logType = 'manual'; }
+
+            if(!logType) {
+                alert('Нет подходящих действий для отмены.');
+                return;
+            }
+
+            if(logType === 'purchase') {
+                db.purchasesLog.pop();
+                db.stock = db.stock.filter(s => s.ts !== latestTs);
+                db.transactions = db.transactions.filter(t => t.ts !== latestTs);
+            } else if (logType === 'sale') {
+                let s = db.salesLog.pop();
+                s.items.forEach(item => {
+                    if(item.trace) {
+                        item.trace.forEach(tr => {
+                            if(db.stock[tr.index]) db.stock[tr.index].qty += tr.qtyTaken;
+                        });
+                    }
+                });
+                db.transactions = db.transactions.filter(t => t.ts !== latestTs);
+            } else if (logType === 'kitchen') {
+                let k = db.kitchenLog.pop();
+                db.stock = db.stock.filter(s => s.ts !== latestTs);
+                k.itemsUsed.forEach(item => {
+                    if(item.trace) {
+                        item.trace.forEach(tr => {
+                            if(db.stock[tr.index]) db.stock[tr.index].qty += tr.qtyTaken;
+                        });
+                    }
+                });
+                db.transactions = db.transactions.filter(t => t.ts !== latestTs);
+            } else if (logType === 'manual') {
+                db.transactions = db.transactions.filter(t => t.id !== tLog.id);
+            }
+            
+            await syncDb();
             updateUI();
         }
 
@@ -1212,7 +1301,9 @@
             let kitHtml = '';
             db.kitchenLog.slice().reverse().forEach((k) => {
                 let rows = k.itemsUsed.map(i => `<tr><td class="text-muted">${i.name}</td><td class="text-center text-muted">${i.qty} шт</td><td class="text-end text-muted">${i.cost.toFixed(2)}$</td></tr>`).join('');
-                let qualityBadge = k.type === 'dish' ? `<span class="badge bg-secondary opacity-75">${k.quality}</span>` : `<span class="badge bg-light text-dark border">Заготовка</span>`;
+                if(k.extraCost > 0) rows += `<tr><td class="text-muted"><em>Доп. расходы</em></td><td class="text-center">-</td><td class="text-end text-muted">${k.extraCost}$</td></tr>`;
+                
+                let qualityBadge = k.type === 'dish' ? `<span class="badge bg-secondary opacity-75">Блюдо</span>` : `<span class="badge bg-light text-dark border">Заготовка</span>`;
                 
                 kitHtml += `
                     <div class="history-card">
