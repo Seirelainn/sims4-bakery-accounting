@@ -75,6 +75,97 @@
 
         .recipe-card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem; }
         .warning-banner { background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 0.5rem; font-size: 0.85rem; display: none; margin-bottom: 15px; border: 1px solid #ffeeba; }
+
+        /* Фиксированная ширина элементов */
+        .w-amount-trans { width: 100px; min-width: 100px; max-width: 100px; flex-shrink: 0; text-align: right; }
+        .w-qty-pur { width: 55px; min-width: 55px; max-width: 55px; }
+        .w-price-pur { width: 70px; min-width: 70px; max-width: 70px; }
+        .w-qty-kit { width: 45px; min-width: 45px; max-width: 45px; }
+        .w-price-kit { width: 60px; min-width: 60px; max-width: 60px; }
+        .w-qty-sale { width: 55px; min-width: 55px; max-width: 55px; }
+        .w-exp-sale { width: 55px; min-width: 55px; max-width: 55px; }
+        .w-inc-sale { width: 65px; min-width: 65px; max-width: 65px; }
+        .w-qty-stock { width: 55px; min-width: 55px; max-width: 55px; }
+        .w-price-stock { width: 70px; min-width: 70px; max-width: 70px; }
+
+        /* Улучшенный перенос длинного текста в карточках */
+        .card-title-text { word-break: break-word; }
+
+        /* Унификация кнопок */
+        #undo-btn, 
+        .stock-tabs .btn {
+            height: 40px;
+            border-radius: 0.5rem; /* Скругление, как у карточек */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Макет для фиолетового блока и кнопки статистики */
+        .dashboard-row {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        .profit-wrapper {
+            flex-grow: 1;
+        }
+
+        .stats-btn {
+            width: 82px;
+            background-color: var(--accent-color);
+            border: none;
+            border-radius: 1rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
+        }
+
+        .stats-btn:hover {
+            opacity: 0.9;
+        }
+
+        .stats-btn i {
+            font-size: 2rem;
+        }
+
+        .stats-label{
+            font-size: 13px;
+            font-weight: 700;
+            color: #8c8c8c;
+            letter-spacing: 0;
+            text-transform: none;
+            margin-bottom: 6px;
+        }
+
+        .stats-table{
+            width:100%;
+            margin:0;
+            border-collapse: collapse;
+        }
+
+        .stats-table td{
+            padding: 14px 0;
+            font-size: 15px;
+            font-weight: 400;
+            color:#2f2f2f;
+            border-bottom:1px solid #ececec;
+        }
+
+        .stats-table td:last-child{
+            text-align:right;
+        }
+
+        .stats-table tr:last-child td{
+            border-bottom:none;
+        }
+
+        .modal-header{
+            border-bottom:none !important;
+        }
     </style>
 </head>
 <body>
@@ -82,18 +173,31 @@
     <div class="container">
         <div id="tab-main" class="tab-content active">
             <h4 class="mb-4 fw-bold">Главная</h4>
-            <div class="card card-profit p-3 mb-3">
-                <div class="text-white-50 small">Чистая прибыль</div>
-                <h2 class="mb-0 fw-bold" id="ui-net-profit">0 $</h2>
+            <div class="dashboard-row mb-4">
+                <div class="profit-wrapper">
+                    <div class="card card-profit h-100 mb-0">
+                        <div class="card-body d-flex flex-column justify-content-center">
+                            <div class="small opacity-75">Чистая прибыль</div>
+                            <h2 class="mb-0 fw-bold" id="ui-net-profit">0.00 $</h2>
+                        </div>
+                    </div>
+                </div>
+                <button class="stats-btn" onclick="showStatsModal()">
+                    <i class="bi bi-bar-chart-fill"></i>
+                </button>
             </div>
             <div class="row g-2 mb-4">
                 <div class="col-6"><div class="card card-income p-3"><div class="text-white-50 small">Доходы</div><h4 class="mb-0 fw-bold" id="ui-total-income">0 $</h4></div></div>
                 <div class="col-6"><div class="card card-expense p-3"><div class="text-white-50 small">Расходы</div><h4 class="mb-0 fw-bold" id="ui-total-expense">0 $</h4></div></div>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold mb-0">История действий</h5>
-                <button class="btn btn-sm btn-outline-danger" onclick="undoLastAction()" title="Отменить последнее действие"><i class="bi bi-arrow-counterclockwise"></i> Отменить последнее действие</button>
+            <div class="row align-items-center mb-3 g-2">
+                <div class="col-12 col-md-auto">
+                    <h5 class="fw-bold mb-0">История действий</h5>
+                </div>
+                <div class="col-12 col-md-auto ms-md-auto">
+                    <button id="undo-btn" class="btn btn-outline-danger w-100" onclick="undoLastAction()" title="Отменить последнее действие"><i class="bi bi-arrow-counterclockwise"></i>  Отменить последнее действие</button>
+                </div>
             </div>
             
             <div id="main-empty-state" class="empty-state">
@@ -158,7 +262,7 @@
             <div class="history-card" id="stock-container">
                 <div id="stock-empty-state" class="empty-state py-3"><p class="mb-0 small">Склад пуст</p></div>
                 <table class="table-custom" id="stock-table" style="display: none;">
-                    <thead><tr><th>Название</th><th class="text-end">Единиц</th><th class="text-end">Цена за 1</th></tr></thead>
+                    <thead><tr><th>Название</th><th class="text-end w-qty-stock">Кол-во</th><th class="text-end w-price-stock">Цена/шт</th></tr></thead>
                     <tbody id="stock-list"></tbody>
                 </table>
             </div>
@@ -278,8 +382,11 @@
                             <input type="number" class="form-control" id="prep-recipe-output" value="1" min="1">
                         </div>
                         <div class="col-6">
-                            <label class="small text-muted mb-1">Доп. стоимость ($)</label>
-                            <input type="number" class="form-control" id="prep-recipe-extra-cost" value="0" min="0">
+                            <label class="small text-muted mb-1">Доп. стоимость</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="prep-recipe-extra-cost" value="0" min="0">
+                                <span class="input-group-text small px-1">$</span>
+                            </div>
                         </div>
                     </div>
                     
@@ -378,6 +485,26 @@
                         <button class="btn btn-light w-50" data-bs-dismiss="modal">Отмена</button>
                         <button class="btn btn-secondary w-50 text-white" onclick="saveSale()">Продать</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="statsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-md-down">
+            <div class="modal-content">
+                <div class="modal-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0">Статистика</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    
+                    <div class="stats-label mb-3">
+                        Средний доход за 1 порцию
+                    </div>
+
+                    <table class="table-custom">
+                        <tbody id="stats-table-body"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -500,6 +627,58 @@
             return { cost, trace };
         }
 
+        function showStatsModal() {
+            const statsBody = document.getElementById('stats-table-body');
+            const dishStats = {};
+
+            // 1. Собираем все уникальные названия блюд из рецептов (заготовок и блюд)
+            db.dishRecipes.forEach(r => {
+                dishStats[r.name] = { totalIncome: 0, totalExpense: 0, totalQty: 0 };
+            });
+
+            // 2. Проходим по логам продаж и суммируем данные
+            db.salesLog.forEach(sale => {
+                sale.items.forEach(item => {
+                    if (!dishStats[item.name]) {
+                        dishStats[item.name] = { totalIncome: 0, totalExpense: 0, totalQty: 0 };
+                    }
+                    dishStats[item.name].totalIncome += item.income;
+                    dishStats[item.name].totalExpense += item.expense;
+                    dishStats[item.name].totalQty += item.qty;
+                });
+            });
+
+            // 3. Формируем массив для вывода и считаем среднюю прибыль
+            let results = Object.keys(dishStats).map(name => {
+                const data = dishStats[name];
+                let avgProfit = null;
+                if (data.totalQty > 0) {
+                    avgProfit = (data.totalIncome - data.totalExpense) / data.totalQty;
+                }
+                return { name, avgProfit };
+            });
+
+            // 4. Сортировка: сначала те, что продавались (по убыванию цены), потом остальные
+            results.sort((a, b) => {
+                if (a.avgProfit === null) return 1;
+                if (b.avgProfit === null) return -1;
+                return b.avgProfit - a.avgProfit;
+            });
+
+            // 5. Отрисовка таблицы
+            statsBody.innerHTML = results.map(r => `
+                <tr>
+                    <td>${r.name}</td>
+                    <td class="text-end text-muted w-price-stock">
+                        ${r.avgProfit !== null ? r.avgProfit.toFixed(2) + ' $' : '—'}
+                    </td>
+                </tr>
+            `).join('');
+
+            // Показываем модалку
+            new bootstrap.Modal(document.getElementById('statsModal')).show();
+        }
+
         function openExpenseModal() {
             setModalDates('exp');
             document.getElementById('exp-name').value = '';
@@ -588,8 +767,8 @@
                     </div>
                 </div>
                 <div class="col-1 text-end">
-                    <button type="button" class="btn btn-link text-danger p-0" onclick="this.closest('.row').remove(); calcPurchaseTotal();">
-                        <i class="bi bi-trash"></i>
+                    <button type="button" class="btn btn-link text-muted p-0" onclick="this.closest('.row').remove(); calcPurchaseTotal();">
+                        <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
             `;
@@ -677,7 +856,7 @@
                 <div class="row g-2 mb-2 align-items-center recipe-ing-row" id="ing-row-${id}">
                     <div class="col-7"><select class="form-select rec-item">${options}</select></div>
                     <div class="col-4"><div class="input-group"><input type="number" class="form-control rec-qty" value="1" min="0.1" step="0.5"><span class="input-group-text small px-1">шт</span></div></div>
-                    <div class="col-1 text-end"><button class="btn btn-link text-danger p-0" onclick="document.getElementById('ing-row-${id}').remove();"><i class="bi bi-trash"></i></button></div>
+                    <div class="col-1 text-end"><button class="btn btn-link text-muted p-0" onclick="document.getElementById('ing-row-${id}').remove();"><i class="bi bi-x-lg"></i></button></div>
                 </div>`;
             document.getElementById(containerId).insertAdjacentHTML('beforeend', html);
         }
@@ -728,7 +907,7 @@
                 }).join('');
                 
                 if (recipe.extraCost > 0) {
-                    trs += `<tr><td><em>Доп. расходы</em></td><td class="text-center">-</td><td class="text-end text-muted">${recipe.extraCost}$</td></tr>`;
+                    trs += `<tr><td><em>Доп. расходы</em></td><td class="text-center"> </td><td class="text-end text-muted">${recipe.extraCost}$</td></tr>`;
                 }
                 
                 document.getElementById('prep-ingredients-list').innerHTML = trs;
@@ -764,7 +943,7 @@
                         <div class="row g-2 mb-2 align-items-center recipe-ing-row" id="ing-row-${id}">
                             <div class="col-7"><select class="form-select rec-item">${options}</select></div>
                             <div class="col-4"><div class="input-group"><input type="number" class="form-control rec-qty" value="${ing.qty}" min="0.1" step="0.5"><span class="input-group-text small px-1">шт</span></div></div>
-                            <div class="col-1 text-end"><button class="btn btn-link text-danger p-0" onclick="document.getElementById('ing-row-${id}').remove();"><i class="bi bi-trash"></i></button></div>
+                            <div class="col-1 text-end"><button class="btn btn-link text-muted p-0" onclick="document.getElementById('ing-row-${id}').remove();"><i class="bi bi-x-lg"></i></button></div>
                         </div>`;
                     document.getElementById('prep-recipe-rows').insertAdjacentHTML('beforeend', html);
                 });
@@ -858,7 +1037,7 @@
             }).join('');
             
             if (recipe.extraCost > 0) {
-                trs += `<tr><td><em>Доп. расходы</em></td><td class="text-center">-</td><td class="text-end text-muted">${recipe.extraCost}$</td></tr>`;
+                trs += `<tr><td><em>Доп. расходы</em></td><td class="text-center"> </td><td class="text-end text-muted">${recipe.extraCost}$</td></tr>`;
             }
 
             document.getElementById('dish-ingredients-list').innerHTML = trs;
@@ -900,7 +1079,12 @@
                 <div class="recipe-card" id="dish-card-${cardId}">
                     <div class="mb-2">
                         <label class="small text-muted mb-1">Название рецепта</label>
-                        <input type="text" class="form-control card-variant-name" value="${vName}">
+                        <div class="d-flex gap-2">
+                            <input type="text" class="form-control card-variant-name" value="${vName}">
+                            <button class="btn btn-outline-danger" style="width: 38px; height: 38px; padding: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" onclick="document.getElementById('dish-card-${cardId}').remove()" title="Удалить рецепт">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-6">
@@ -908,14 +1092,16 @@
                             <input type="number" class="form-control card-variant-output" value="${vOut}" min="1">
                         </div>
                         <div class="col-6">
-                            <label class="small text-muted mb-1">Доп. стоимость ($)</label>
-                            <input type="number" class="form-control card-variant-extra-cost" value="${vCost}" min="0">
+                            <label class="small text-muted mb-1">Доп. стоимость</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control card-variant-extra-cost" value="${vCost}" min="0">
+                                <span class="input-group-text small px-1">$</span>
+                            </div>
                         </div>
                     </div>
                     <label class="small text-muted mb-2">Ингредиенты</label>
                     <div id="dish-card-rows-${cardId}"></div>
                     <button class="btn btn-link text-decoration-none text-muted p-0 small" onclick="addRecipeIngredientRow('dish-card-rows-${cardId}')">+ Добавить ингредиент</button>
-                    <div class="text-end mt-2"><button class="btn btn-sm btn-outline-danger py-0" onclick="document.getElementById('dish-card-${cardId}').remove()"><i class="bi bi-trash"></i> Удалить рецепт</button></div>
                 </div>`;
             document.getElementById('dish-recipe-cards-container').insertAdjacentHTML('beforeend', html);
             
@@ -927,7 +1113,7 @@
                         <div class="row g-2 mb-2 align-items-center recipe-ing-row" id="ing-row-${id}">
                             <div class="col-7"><select class="form-select rec-item">${options}</select></div>
                             <div class="col-4"><div class="input-group"><input type="number" class="form-control rec-qty" value="${ing.qty}" min="0.1" step="0.5"><span class="input-group-text small px-1">шт</span></div></div>
-                            <div class="col-1 text-end"><button class="btn btn-link text-danger p-0" onclick="document.getElementById('ing-row-${id}').remove();"><i class="bi bi-trash"></i></button></div>
+                            <div class="col-1 text-end"><button class="btn btn-link text-muted p-0" onclick="document.getElementById('ing-row-${id}').remove();"><i class="bi bi-x-lg"></i></button></div>
                         </div>`;
                     document.getElementById(`dish-card-rows-${cardId}`).insertAdjacentHTML('beforeend', rHtml);
                 });
@@ -1081,16 +1267,15 @@
         function updateSaleRowMax(selectEl) {
             let row = selectEl.closest('.sale-row');
             let name = selectEl.value;
-            let infoDiv = row.querySelector('.sale-stock-info');
-            let maxSpan = row.querySelector('.max-qty');
             let qtyInput = row.querySelector('.sale-qty');
-            
+
             if (name) {
                 let available = getStockQty(name);
-                if(maxSpan) maxSpan.textContent = available;
-                if(infoDiv) infoDiv.style.display = 'block';
-                qtyInput.max = available; 
+                qtyInput.max = available;
+            } else {
+                qtyInput.max = '';
             }
+
             validateSale();
         }
 
@@ -1180,7 +1365,7 @@
         }
 
         async function undoLastAction() {
-            if(!confirm('Отменить последнее действие? Это безвозвратно удалит запись и вернет продукты/деньги. Поддерживаются только действия, совершенные после обновления системы.')) return;
+            if(!confirm('Отменить последнее действие? Это безвозвратно удалит запись и вернет продукты/деньги.')) return;
             
             let latestTs = 0;
             let logType = null;
@@ -1244,33 +1429,39 @@
 
                 let color = t.type === 'Доход' ? 'text-success' : 'text-danger';
                 let sign = t.type === 'Доход' ? '+' : '-';
-                let amountDisplay = `<span class="fw-bold ${color}">${sign} ${t.amount.toFixed(2)} $</span>`;
-    
+                let amountDisplay;
+                
+                // Если сумма равна нулю
+                if (t.amount === 0) {
+                    amountDisplay = `<div class="w-amount-trans fw-bold text-muted">0.00 $</div>`;
+                } else {
+                    amountDisplay = `<div class="w-amount-trans fw-bold ${color}">${sign} ${t.amount.toFixed(2)} $</div>`;
+                }
+
                 let displayTitle = t.title;
                 if (t.isManual && !displayTitle.startsWith('Покупка:')) {
                     displayTitle = 'Покупка: ' + displayTitle;
                 }
             
-                let showEditBtn = t.isManual ? '' : 'display: none;'; 
+                // Кнопка редактирования сразу после текста (карандашик)
+                let editIcon = t.isManual ? ` <i class="bi bi-pencil text-muted" style="cursor: pointer; font-size: 0.9rem;" onclick="editExpense(${t.id})"></i>` : '';
                 
                 transHtml += `
                     <div class="history-card">
-                        <div class="d-flex justify-content-between text-muted small mb-2">
+                        <div class="d-flex justify-content-between align-items-center text-muted small mb-2">
                             <span>${t.type}</span>
-                            <span>${t.date}</span>
+                            <span class="badge bg-light text-dark border">${t.date}</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="fw-bold">${displayTitle}</span>
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold pe-2 card-title-text">${displayTitle}${editIcon}</span>
                             ${amountDisplay}
-                        </div>
-                        <div class="text-end">
-                            <button class="btn btn-sm btn-light py-0 px-2" style="font-size:0.75rem; background:#f0f0f0; ${showEditBtn}" onclick="editExpense(${t.id})">редактировать</button>
                         </div>
                     </div>`;
             });
-            document.getElementById('ui-total-income').textContent = `${inc.toFixed(2)} $`;
-            document.getElementById('ui-total-expense').textContent = `${exp.toFixed(2)} $`;
-            document.getElementById('ui-net-profit').textContent = `${(inc - exp).toFixed(2)} $`;
+            
+            document.getElementById('ui-total-income').textContent = `${inc.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2})} $`;
+            document.getElementById('ui-total-expense').textContent = `${exp.toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2})} $`;
+            document.getElementById('ui-net-profit').textContent = `${(inc - exp).toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2})} $`;
             
             document.getElementById('main-empty-state').style.display = db.transactions.length ? 'none' : 'block';
             document.getElementById('transactions-list').style.display = db.transactions.length ? 'block' : 'none';
@@ -1278,12 +1469,12 @@
 
             let purHtml = '';
             db.purchasesLog.slice().reverse().forEach((p) => {
-                let rows = p.items.map(i => `<tr><td>${i.name}</td><td class="text-end">${i.qty} шт</td><td class="text-end">${i.price.toFixed(2)} $</td></tr>`).join('');
-                if(p.delivery > 0) rows += `<tr><td class="text-muted">Доставка</td><td></td><td class="text-end text-muted">${p.delivery} $</td></tr>`;
+                let rows = p.items.map(i => `<tr><td>${i.name}</td><td class="text-end w-qty-pur">${i.qty} шт</td><td class="text-end w-price-pur">${i.price.toFixed(2)} $</td></tr>`).join('');
+                if(p.delivery > 0) rows += `<tr><td class="text-muted">Доставка</td><td class="w-qty-pur"></td><td class="text-end text-muted w-price-pur">${p.delivery} $</td></tr>`;
                 purHtml += `
                     <div class="history-card">
                         <div class="text-end mb-2"><span class="badge bg-light text-dark border">${p.date}</span></div>
-                        <table class="table-custom mb-3"><thead><tr><th>Продукт</th><th class="text-end">Кол-во</th><th class="text-end">Цена за 1</th></tr></thead><tbody>${rows}</tbody></table>
+                        <table class="table-custom mb-3"><thead><tr><th>Продукт</th><th class="text-end w-qty-pur">Кол-во</th><th class="text-end w-price-pur">Цена/шт</th></tr></thead><tbody>${rows}</tbody></table>
                         <div class="d-flex justify-content-between bg-light p-2 rounded mb-1"><span class="fw-bold">ИТОГО</span><span class="fw-bold text-danger">- ${p.total.toFixed(2)} $</span></div>
                     </div>`;
             });
@@ -1305,30 +1496,34 @@
                 document.getElementById('stock-empty-state').style.display = 'none';
                 document.getElementById('stock-table').style.display = 'table';
                 document.getElementById('stock-list').innerHTML = displayStock.map(s => 
-                    `<tr><td class="fw-medium">${s.name}</td><td class="text-end">${s.qty} шт</td><td class="text-end text-muted">${s.price.toFixed(2)} $</td></tr>`
+                    `<tr><td class="fw-medium">${s.name}</td><td class="text-end w-qty-stock">${s.qty} шт</td><td class="text-end text-muted w-price-stock">${s.price.toFixed(2)} $</td></tr>`
                 ).join('');
             } else {
                 document.getElementById('stock-empty-state').style.display = 'block';
                 document.getElementById('stock-table').style.display = 'none';
             }
 
-        let kitHtml = '';
+            let kitHtml = '';
             db.kitchenLog.slice().reverse().forEach((k) => {
-                let rows = k.itemsUsed.map(i => `<tr><td class="text-muted">${i.name}</td><td class="text-center text-muted">${i.qty} шт</td><td class="text-end text-muted">${i.cost.toFixed(2)}$</td></tr>`).join('');
-                if(k.extraCost > 0) rows += `<tr><td class="text-muted"><em>Доп. расходы</em></td><td class="text-center">-</td><td class="text-end text-muted">${k.extraCost}$</td></tr>`;
+                let rows = k.itemsUsed.map(i => `<tr><td class="text-muted">${i.name}</td><td class="text-center text-muted w-qty-kit">${i.qty} шт</td><td class="text-end text-muted w-price-kit">${i.cost.toFixed(2)}$</td></tr>`).join('');
+                // Заменили дефис на пробел (&nbsp;) для пустой колонки
+                if(k.extraCost > 0) rows += `<tr><td class="text-muted"><em>Доп. расходы</em></td><td class="text-center w-qty-kit">&nbsp;</td><td class="text-end text-muted w-price-kit">${k.extraCost}$</td></tr>`;
                 
                 kitHtml += `
                     <div class="history-card">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div><span class="fw-bold fs-6 d-block">${k.outputName}</span></div>
-                            <span class="badge bg-light text-dark border">${k.date}</span>
+                            <div><span class="fw-bold fs-6 d-block card-title-text">${k.outputName}</span></div>
+                            <span class="badge bg-light text-dark border ms-2">${k.date}</span>
                         </div>
                         <div class="mb-2 small">
                             <span class="text-success fw-bold">+ ${k.outputQty} шт</span> 
                             <span class="text-muted ms-2">(себест: ${k.costPerItem.toFixed(2)}$/шт)</span>
-                            <div class="text-muted mt-1">Всего расходов: ${k.totalCost.toFixed(2)}$</div>
                         </div>
-                        <table class="table-custom mb-1" style="font-size:0.8rem;"><tbody>${rows}</tbody></table>
+                        <table class="table-custom mb-2" style="font-size:0.8rem;"><tbody>${rows}</tbody></table>
+                        <div class="d-flex justify-content-between text-muted small fw-bold border-top pt-2 mt-1">
+                            <span>Всего расходов:</span>
+                            <span>${k.totalCost.toFixed(2)}$</span>
+                        </div>
                     </div>`;
             });
             document.getElementById('kitchen-empty-state').style.display = db.kitchenLog.length ? 'none' : 'block';
@@ -1337,18 +1532,36 @@
 
             let saleHtml = '';
             db.salesLog.slice().reverse().forEach((s) => {
-                let rows = s.items.map(i => `<tr><td>${i.name}</td><td class="text-center">${i.qty} шт</td><td class="text-end text-muted">${i.expense.toFixed(2)}$</td><td class="text-end">${i.income.toFixed(2)}$</td></tr>`).join('');
+                let rows = s.items.map(i => `<tr><td>${i.name}</td><td class="text-center w-qty-sale">${i.qty} шт</td><td class="text-end text-muted w-exp-sale">${i.expense.toFixed(2)}$</td><td class="text-end w-inc-sale">${i.income.toFixed(2)}$</td></tr>`).join('');
                 saleHtml += `
                     <div class="history-card">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h6 class="mb-0 fw-bold">${s.type}</h6><span class="badge bg-light text-dark border">${s.date}</span>
                         </div>
                         <table class="table-custom mb-3">
-                            <thead><tr><th>Блюдо</th><th class="text-center">Кол-во</th><th class="text-end">Расход</th><th class="text-end">Доход</th></tr></thead>
+                            <thead><tr><th>Блюдо</th><th class="text-center w-qty-sale">Кол-во</th><th class="text-end w-exp-sale">Расход</th><th class="text-end w-inc-sale">Доход</th></tr></thead>
                             <tbody>${rows}</tbody>
                         </table>
-                        <div class="d-flex justify-content-between bg-light p-2 rounded mb-1"><span class="fw-bold">ИТОГО</span><span class="fw-bold text-muted">${s.totalExpense.toFixed(2)}$ &nbsp;&nbsp; <span class="text-dark">${s.totalIncome.toFixed(2)}$</span></span></div>
-                        <div class="d-flex justify-content-between p-2 mb-1"><span class="fw-bold">ЧИСТАЯ ПРИБЫЛЬ</span><span class="fw-bold text-success">${s.netProfit.toFixed(2)} $</span></div>
+                        <div class="row g-2 mt-3">
+                            <div class="col-12 col-md-4">
+                                <div class="bg-light p-2 rounded d-flex justify-content-between h-100">
+                                    <span class="text-muted small fw-bold">ИТОГО РАСХОД</span>
+                                    <span class="fw-bold text-danger">${s.totalExpense.toFixed(2)}$</span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="bg-light p-2 rounded d-flex justify-content-between h-100">
+                                    <span class="text-muted small fw-bold">ИТОГО ДОХОД</span>
+                                    <span class="fw-bold text-success">${s.totalIncome.toFixed(2)}$</span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="p-2 rounded d-flex justify-content-between h-100" style="background-color: #e6fae3;">
+                                    <span class="text-muted small fw-bold">ПРИБЫЛЬ</span>
+                                    <span class="fw-bold text-success">${s.netProfit.toFixed(2)}$</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>`;
             });
             document.getElementById('sales-empty-state').style.display = db.salesLog.length ? 'none' : 'block';
