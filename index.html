@@ -1240,19 +1240,32 @@
             let inc = 0, exp = 0, transHtml = '';
             db.transactions.slice().reverse().forEach((t) => {
                 if(t.type === 'Доход') inc += t.amount; 
-                else if (t.type === 'Расход' || t.type === 'Кухня') exp += t.amount; // Доп. расходы кухни всё еще учитываются в математике
+                else if (t.type === 'Расход' || t.type === 'Кухня') exp += t.amount; 
 
                 let color = t.type === 'Доход' ? 'text-success' : 'text-danger';
                 let sign = t.type === 'Доход' ? '+' : '-';
                 let amountDisplay = `<span class="fw-bold ${color}">${sign} ${t.amount.toFixed(2)} $</span>`;
-                
+    
+                let displayTitle = t.title;
+                if (t.isManual && !displayTitle.startsWith('Покупка:')) {
+                    displayTitle = 'Покупка: ' + displayTitle;
+                }
+            
                 let showEditBtn = t.isManual ? '' : 'display: none;'; 
                 
                 transHtml += `
                     <div class="history-card">
-                        <div class="d-flex justify-content-between text-muted small mb-2"><span>${t.type}</span><span>${t.date}</span></div>
-                        <div class="d-flex justify-content-between mb-2"><span class="fw-bold">${t.title}</span>${amountDisplay}</div>
-                        <div class="text-end"><button class="btn btn-sm btn-light py-0 px-2" style="font-size:0.75rem; background:#f0f0f0; ${showEditBtn}" onclick="editExpense(${t.id})">редактировать</button></div>
+                        <div class="d-flex justify-content-between text-muted small mb-2">
+                            <span>${t.type}</span>
+                            <span>${t.date}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold">${displayTitle}</span>
+                            ${amountDisplay}
+                        </div>
+                        <div class="text-end">
+                            <button class="btn btn-sm btn-light py-0 px-2" style="font-size:0.75rem; background:#f0f0f0; ${showEditBtn}" onclick="editExpense(${t.id})">редактировать</button>
+                        </div>
                     </div>`;
             });
             document.getElementById('ui-total-income').textContent = `${inc.toFixed(2)} $`;
