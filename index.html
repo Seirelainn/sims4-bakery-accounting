@@ -412,26 +412,26 @@
             loader.style.display = show ? 'flex' : 'none';
         }
 
-        async function fetchDb() {
+        function fetchDb() {
             toggleLoading(true);
             document.getElementById('loader-text').innerText = 'Загрузка данных...';
-            try {
-                const response = await fetch(GAS_URL);
-                db = await response.json();
-                
-                if (db.transactions.length > 0) {
-                    transIdCounter = Math.max(...db.transactions.map(t => t.id)) + 1;
-                }
-                
-                document.getElementById('purchase-rows-container').innerHTML = '';
-                addPurchaseRow(); 
-                
-                updateUI();
-            } catch (error) {
-                alert('Ошибка загрузки базы данных: ' + error);
-            } finally {
-                toggleLoading(false);
-            }
+            fetch(GAS_URL)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) throw new Error(data.error);
+                    db = data;
+                    transIdCounter = db.transactions.length 
+                        ? Math.max(...db.transactions.map(t => t.id || 0)) + 1 
+                        : 1;
+                    document.getElementById('purchase-rows-container').innerHTML = '';
+                    addPurchaseRow();
+                    updateUI();
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Ошибка подключения к базе: ' + err.message + '\n\nПроверьте заголовки колонок и очистите данные, как в инструкции выше.');
+                })
+                .finally(() => toggleLoading(false));
         }
 
         async function syncDb() {
@@ -1298,17 +1298,15 @@
                 document.getElementById('stock-table').style.display = 'none';
             }
 
-            let kitHtml = '';
+        let kitHtml = '';
             db.kitchenLog.slice().reverse().forEach((k) => {
                 let rows = k.itemsUsed.map(i => `<tr><td class="text-muted">${i.name}</td><td class="text-center text-muted">${i.qty} шт</td><td class="text-end text-muted">${i.cost.toFixed(2)}$</td></tr>`).join('');
                 if(k.extraCost > 0) rows += `<tr><td class="text-muted"><em>Доп. расходы</em></td><td class="text-center">-</td><td class="text-end text-muted">${k.extraCost}$</td></tr>`;
                 
-                let qualityBadge = k.type === 'dish' ? `<span class="badge bg-secondary opacity-75">Блюдо</span>` : `<span class="badge bg-light text-dark border">Заготовка</span>`;
-                
                 kitHtml += `
                     <div class="history-card">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div><span class="fw-bold fs-6 d-block">${k.outputName}</span>${qualityBadge}</div>
+                            <div><span class="fw-bold fs-6 d-block">${k.outputName}</span></div>
                             <span class="badge bg-light text-dark border">${k.date}</span>
                         </div>
                         <div class="mb-2 small">
