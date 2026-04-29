@@ -220,7 +220,7 @@
                     </div>
                     <div class="d-flex gap-2">
                         <button class="btn btn-light w-50" data-bs-dismiss="modal">Отмена</button>
-                        <button class="btn btn-secondary w-50 text-white" onclick="savePurchase()">Сохранить</button>
+                        <button class="btn btn-secondary w-50 text-white" onclick="savePurchase()">Закупить</button>
                     </div>
                 </div>
             </div>
@@ -256,7 +256,7 @@
 
                     <div class="d-flex gap-2 mt-4">
                         <button class="btn btn-light w-50" data-bs-dismiss="modal">Отмена</button>
-                        <button class="btn btn-secondary w-50 text-white" id="prep-save-btn" onclick="saveKitchenAction('prep')">Сохранить</button>
+                        <button class="btn btn-secondary w-50 text-white" id="prep-save-btn" onclick="saveKitchenAction('prep')">Приготовить</button>
                     </div>
                 </div>
             </div>
@@ -326,7 +326,7 @@
 
                     <div class="d-flex gap-2 mt-4">
                         <button class="btn btn-light w-50" data-bs-dismiss="modal">Отмена</button>
-                        <button class="btn btn-secondary w-50 text-white" id="dish-save-btn" onclick="saveKitchenAction('dish')">Сохранить</button>
+                        <button class="btn btn-secondary w-50 text-white" id="dish-save-btn" onclick="saveKitchenAction('dish')">Приготовить</button>
                     </div>
                 </div>
             </div>
@@ -376,7 +376,7 @@
                     </div>
                     <div class="d-flex gap-2">
                         <button class="btn btn-light w-50" data-bs-dismiss="modal">Отмена</button>
-                        <button class="btn btn-secondary w-50 text-white" onclick="saveSale()">Сохранить</button>
+                        <button class="btn btn-secondary w-50 text-white" onclick="saveSale()">Продать</button>
                     </div>
                 </div>
             </div>
@@ -915,7 +915,7 @@
                     <label class="small text-muted mb-2">Ингредиенты</label>
                     <div id="dish-card-rows-${cardId}"></div>
                     <button class="btn btn-link text-decoration-none text-muted p-0 small" onclick="addRecipeIngredientRow('dish-card-rows-${cardId}')">+ Добавить ингредиент</button>
-                    <div class="text-end mt-2"><button class="btn btn-sm btn-outline-danger py-0" onclick="document.getElementById('dish-card-${cardId}').remove()"><i class="bi bi-trash"></i> Удалить карточку</button></div>
+                    <div class="text-end mt-2"><button class="btn btn-sm btn-outline-danger py-0" onclick="document.getElementById('dish-card-${cardId}').remove()"><i class="bi bi-trash"></i> Удалить рецепт</button></div>
                 </div>`;
             document.getElementById('dish-recipe-cards-container').insertAdjacentHTML('beforeend', html);
             
