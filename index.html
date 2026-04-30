@@ -463,6 +463,8 @@
                                 <option value="Изысканная кулинария">Изысканная кулинария</option>
                                 <option value="Выпечка">Выпечка</option>
                                 <option value="Свадебный торт">Свадебный торт</option>
+                                <option value="Вафли">Вафли</option>
+                                <option value="Пицца">Пицца</option>
                             </select>
                         </div>
                         <div class="col-6">
@@ -524,7 +526,7 @@
                     </div>
                     
                     <div class="mb-3">
-                        <div class="stats-label fs-6 mb-2">Средний доход за 1 порцию</div>
+                        <div class="stats-label fs-6 mb-2">Средняя прибыль за 1 порцию</div>
                         <div class="d-flex gap-2 flex-wrap">
                             <div class="dropdown">
                                 <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="statsTypeFilterBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
@@ -535,6 +537,8 @@
                                     <li><label class="dropdown-item px-2 py-1"><input class="form-check-input me-2 stats-filter-type" type="checkbox" value="Изысканная кулинария" onchange="renderStatsTable()">Изысканная кулинария</label></li>
                                     <li><label class="dropdown-item px-2 py-1"><input class="form-check-input me-2 stats-filter-type" type="checkbox" value="Выпечка" onchange="renderStatsTable()">Выпечка</label></li>
                                     <li><label class="dropdown-item px-2 py-1"><input class="form-check-input me-2 stats-filter-type" type="checkbox" value="Свадебный торт" onchange="renderStatsTable()">Свадебный торт</label></li>
+                                    <li><label class="dropdown-item px-2 py-1"><input class="form-check-input me-2 stats-filter-type" type="checkbox" value="Вафли" onchange="renderStatsTable()">Вафли</label></li>
+                                    <li><label class="dropdown-item px-2 py-1"><input class="form-check-input me-2 stats-filter-type" type="checkbox" value="Пицца" onchange="renderStatsTable()">Пицца</label></li>
                                 </ul>
                             </div>
                             <div class="dropdown">
@@ -1151,7 +1155,7 @@
                 groupedDishes[type].push(dish);
             });
 
-            const typeOrder = ["Кулинария", "Изысканная кулинария", "Выпечка", "Свадебный торт"];
+            const typeOrder = ["Кулинария", "Изысканная кулинария", "Выпечка", "Свадебный торт", "Вафли", "Пицца"];
             
             // Собираем дропдаун в нужном порядке
             typeOrder.forEach(type => {
