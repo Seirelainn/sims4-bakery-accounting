@@ -451,9 +451,28 @@
             <div class="modal-content">
                 <div class="modal-body p-4">
                     <h5 class="fw-bold mb-4" id="dish-recipe-title">Новый рецепт блюда</h5>
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label class="small text-muted mb-1">Название блюда</label>
                         <input type="text" class="form-control" id="dish-recipe-name">
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <label class="small text-muted mb-1">Тип</label>
+                            <select class="form-select" id="dish-recipe-type">
+                                <option value="Кулинария">Кулинария</option>
+                                <option value="Изысканная кулинария">Изысканная кулинария</option>
+                                <option value="Выпечка">Выпечка</option>
+                                <option value="Свадебный торт">Свадебный торт</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="small text-muted mb-1">Уровень</label>
+                            <select class="form-select" id="dish-recipe-level">
+                                <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                                <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                                <option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+                            </select>
+                        </div>
                     </div>
                     
                     <div id="dish-recipe-cards-container"></div>
@@ -504,8 +523,38 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     
-                    <div class="stats-label mb-3">
-                        Средний доход за 1 порцию
+                    <div class="mb-3">
+                        <div class="stats-label fs-6 mb-2">Средний доход за 1 порцию</div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="statsTypeFilterBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                    <i class="bi bi-funnel"></i> Тип
+                                </button>
+                                <ul class="dropdown-menu p-2 shadow" id="statsTypeFilterMenu" style="width: 220px;">
+                                    <li><label class="dropdown-item px-2 py-1"><input class="form-check-input me-2 stats-filter-type" type="checkbox" value="Кулинария" onchange="renderStatsTable()">Кулинария</label></li>
+                                    <li><label class="dropdown-item px-2 py-1"><input class="form-check-input me-2 stats-filter-type" type="checkbox" value="Изысканная кулинария" onchange="renderStatsTable()">Изысканная кулинария</label></li>
+                                    <li><label class="dropdown-item px-2 py-1"><input class="form-check-input me-2 stats-filter-type" type="checkbox" value="Выпечка" onchange="renderStatsTable()">Выпечка</label></li>
+                                    <li><label class="dropdown-item px-2 py-1"><input class="form-check-input me-2 stats-filter-type" type="checkbox" value="Свадебный торт" onchange="renderStatsTable()">Свадебный торт</label></li>
+                                </ul>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="statsLevelFilterBtn" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                                    <i class="bi bi-funnel"></i> Уровень
+                                </button>
+                                <ul class="dropdown-menu p-2 shadow" id="statsLevelFilterMenu" style="max-height: 200px; overflow-y: auto;">
+                                    <!-- Уровни сгенерируются кодом -->
+                                </ul>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="statsSortBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-sort-down"></i> По цене
+                                </button>
+                                <ul class="dropdown-menu shadow">
+                                    <li><a class="dropdown-item" href="#" onclick="setStatsSort('price', event)">По цене</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setStatsSort('level', event)">По уровню</a></li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
 
                     <table class="table-custom">
@@ -553,6 +602,8 @@
         let transIdCounter = 1;
         let currentStockCategory = 'products';
         let currentDishRecipeCardCount = 0;
+        let currentStatsSort = 'price';
+        let rawStatsData = [];
 
         function toggleLoading(show) {
             let loader = document.getElementById('global-loader');
@@ -664,19 +715,22 @@
         }
 
         function showStatsModal() {
-            const statsBody = document.getElementById('stats-table-body');
             const dishStats = {};
 
-            // 1. Собираем все уникальные названия блюд из рецептов (заготовок и блюд)
             db.dishRecipes.forEach(r => {
-                dishStats[r.name] = { totalIncome: 0, totalExpense: 0, totalQty: 0 };
+                dishStats[r.name] = { 
+                    totalIncome: 0, 
+                    totalExpense: 0, 
+                    totalQty: 0,
+                    type: r.type || 'Кулинария',
+                    level: parseInt(r.level) || 1
+                };
             });
 
-            // 2. Проходим по логам продаж и суммируем данные
             db.salesLog.forEach(sale => {
                 sale.items.forEach(item => {
                     if (!dishStats[item.name]) {
-                        dishStats[item.name] = { totalIncome: 0, totalExpense: 0, totalQty: 0 };
+                        dishStats[item.name] = { totalIncome: 0, totalExpense: 0, totalQty: 0, type: 'Кулинария', level: 1 };
                     }
                     dishStats[item.name].totalIncome += item.income;
                     dishStats[item.name].totalExpense += item.expense;
@@ -684,35 +738,95 @@
                 });
             });
 
-            // 3. Формируем массив для вывода и считаем среднюю прибыль
-            let results = Object.keys(dishStats).map(name => {
+            rawStatsData = Object.keys(dishStats).map(name => {
                 const data = dishStats[name];
                 let avgProfit = null;
                 if (data.totalQty > 0) {
                     avgProfit = (data.totalIncome - data.totalExpense) / data.totalQty;
                 }
-                return { name, avgProfit };
+                return { name, avgProfit, type: data.type, level: data.level };
             });
 
-            // 4. Сортировка: сначала те, что продавались (по убыванию цены), потом остальные
-            results.sort((a, b) => {
-                if (a.avgProfit === null) return 1;
-                if (b.avgProfit === null) return -1;
-                return b.avgProfit - a.avgProfit;
-            });
+            let levelMenu = document.getElementById('statsLevelFilterMenu');
+            if (levelMenu.children.length === 0) {
+                let levelHtml = '';
+                for(let i=1; i<=10; i++) {
+                    levelHtml += `<li><label class="dropdown-item px-2 py-1"><input class="form-check-input me-2 stats-filter-level" type="checkbox" value="${i}" onchange="renderStatsTable()">Уровень ${i}</label></li>`;
+                }
+                levelMenu.innerHTML = levelHtml;
+            }
 
-            // 5. Отрисовка таблицы
-            statsBody.innerHTML = results.map(r => `
-                <tr>
-                    <td>${r.name}</td>
-                    <td class="text-end text-muted w-price-stock">
-                        ${r.avgProfit !== null ? r.avgProfit.toFixed(2) + ' $' : '—'}
-                    </td>
-                </tr>
-            `).join('');
-
-            // Показываем модалку
+            renderStatsTable();
             new bootstrap.Modal(document.getElementById('statsModal')).show();
+        }
+
+        function setStatsSort(sortType, event) {
+            if(event) event.preventDefault();
+            currentStatsSort = sortType;
+            let sortText = sortType === 'price' ? 'По цене' : 'По уровню';
+            document.getElementById('statsSortBtn').innerHTML = `<i class="bi bi-sort-down"></i> ${sortText}`;
+            renderStatsTable();
+        }
+
+        function renderStatsTable() {
+            let selectedTypes = Array.from(document.querySelectorAll('.stats-filter-type:checked')).map(cb => cb.value);
+            let selectedLevels = Array.from(document.querySelectorAll('.stats-filter-level:checked')).map(cb => parseInt(cb.value));
+
+            let typeBtn = document.getElementById('statsTypeFilterBtn');
+            if(selectedTypes.length > 0) {
+                typeBtn.innerHTML = `<i class="bi bi-funnel-fill"></i> Тип (${selectedTypes.length})`;
+                typeBtn.classList.replace('btn-outline-secondary', 'btn-secondary');
+                typeBtn.classList.add('text-white');
+            } else {
+                typeBtn.innerHTML = `<i class="bi bi-funnel"></i> Тип`;
+                typeBtn.classList.replace('btn-secondary', 'btn-outline-secondary');
+                typeBtn.classList.remove('text-white');
+            }
+
+            let levelBtn = document.getElementById('statsLevelFilterBtn');
+            if(selectedLevels.length > 0) {
+                levelBtn.innerHTML = `<i class="bi bi-funnel-fill"></i> Уровень (${selectedLevels.length})`;
+                levelBtn.classList.replace('btn-outline-secondary', 'btn-secondary');
+                levelBtn.classList.add('text-white');
+            } else {
+                levelBtn.innerHTML = `<i class="bi bi-funnel"></i> Уровень`;
+                levelBtn.classList.replace('btn-secondary', 'btn-outline-secondary');
+                levelBtn.classList.remove('text-white');
+            }
+
+            let filteredData = rawStatsData.filter(item => {
+                let typeMatch = selectedTypes.length === 0 || selectedTypes.includes(item.type);
+                let levelMatch = selectedLevels.length === 0 || selectedLevels.includes(item.level);
+                return typeMatch && levelMatch;
+            });
+
+            filteredData.sort((a, b) => {
+                if (currentStatsSort === 'price') {
+                    if (a.avgProfit === null && b.avgProfit !== null) return 1;
+                    if (b.avgProfit === null && a.avgProfit !== null) return -1;
+                    if (a.avgProfit === null && b.avgProfit === null) return 0;
+                    return b.avgProfit - a.avgProfit;
+                } else {
+                    return b.level - a.level; 
+                }
+            });
+
+            const statsBody = document.getElementById('stats-table-body');
+            if (filteredData.length === 0) {
+                statsBody.innerHTML = `<tr><td colspan="2" class="text-center text-muted py-4">Нет блюд, подходящих под фильтры</td></tr>`;
+            } else {
+                statsBody.innerHTML = filteredData.map(r => `
+                    <tr>
+                        <td>
+                            ${r.name}
+                            <div class="small text-muted" style="font-size: 0.75rem;">${r.type}, ${r.level} ур.</div>
+                        </td>
+                        <td class="text-end fw-medium w-price-stock" style="vertical-align: middle;">
+                            ${r.avgProfit !== null ? r.avgProfit.toFixed(2) + ' $' : '<span class="text-muted fw-normal">—</span>'}
+                        </td>
+                    </tr>
+                `).join('');
+            }
         }
 
         function openExpenseModal() {
@@ -1028,9 +1142,32 @@
         function updateDishSelect() {
             let sel = document.getElementById('dish-select');
             let options = '<option value="ADD_NEW" class="fw-bold text-primary" selected>+ Добавить блюдо</option>';
-            for(let i = db.dishRecipes.length - 1; i >= 0; i--) {
-                options += `<option value="${db.dishRecipes[i].name}">${db.dishRecipes[i].name}</option>`;
-            }
+            
+            // Группировка блюд по типу
+            let groupedDishes = {};
+            db.dishRecipes.forEach(dish => {
+                let type = dish.type || 'Кулинария';
+                if (!groupedDishes[type]) groupedDishes[type] = [];
+                groupedDishes[type].push(dish);
+            });
+
+            const typeOrder = ["Кулинария", "Изысканная кулинария", "Выпечка", "Свадебный торт"];
+            
+            // Собираем дропдаун в нужном порядке
+            typeOrder.forEach(type => {
+                if (groupedDishes[type] && groupedDishes[type].length > 0) {
+                    // Сортировка по уровню
+                    groupedDishes[type].sort((a, b) => (parseInt(a.level) || 1) - (parseInt(b.level) || 1));
+                    
+                    options += `<optgroup label="${type}">`;
+                    groupedDishes[type].forEach(dish => {
+                        let levelText = dish.level ? ` (${dish.level} ур.)` : '';
+                        options += `<option value="${dish.name}">${dish.name}${levelText}</option>`;
+                    });
+                    options += `</optgroup>`;
+                }
+            });
+
             sel.innerHTML = options;
             renderDishRecipeView();
         }
@@ -1091,12 +1228,21 @@
                 document.getElementById('dish-recipe-title').textContent = 'Новое блюдо';
                 document.getElementById('dish-recipe-name').value = '';
                 document.getElementById('dish-recipe-name').disabled = false;
+                document.getElementById('dish-recipe-type').value = 'Кулинария';
+                document.getElementById('dish-recipe-level').value = '1';
+                document.getElementById('dish-recipe-type').disabled = false;
+                document.getElementById('dish-recipe-level').disabled = false;
                 addDishRecipeCard();
             } else {
                 document.getElementById('dish-recipe-title').textContent = 'Редактировать рецепты блюда';
                 let dish = db.dishRecipes.find(d => d.name === val);
                 document.getElementById('dish-recipe-name').value = dish.name;
                 document.getElementById('dish-recipe-name').disabled = true;
+                
+                document.getElementById('dish-recipe-type').value = dish.type || 'Кулинария';
+                document.getElementById('dish-recipe-level').value = dish.level || '1';
+                document.getElementById('dish-recipe-type').disabled = true;
+                document.getElementById('dish-recipe-level').disabled = true;
                 
                 dish.recipes.forEach(rec => addDishRecipeCard(rec));
             }
@@ -1160,6 +1306,8 @@
 
         function saveDishRecipe() {
             let name = document.getElementById('dish-recipe-name').value.trim();
+            let type = document.getElementById('dish-recipe-type').value;
+            let level = parseInt(document.getElementById('dish-recipe-level').value) || 1;
             if(!name) return;
 
             let recipes = [];
@@ -1184,8 +1332,10 @@
             let existing = db.dishRecipes.find(d => d.name === name);
             if(existing) {
                 existing.recipes = recipes;
+                existing.type = type;
+                existing.level = level;
             } else {
-                db.dishRecipes.push({ name, recipes });
+                db.dishRecipes.push({ name, type, level, recipes });
             }
 
             syncDb();
@@ -1265,6 +1415,9 @@
         function addSaleRow() {
             saleRowCount++;
             let inStockDishes = [...new Set(db.stock.filter(s => s.category === 'dishes' && s.qty > 0).map(s => s.name))];
+            // Добавлена сортировка по алфавиту
+            inStockDishes.sort((a, b) => a.localeCompare(b, 'ru'));
+            
             let options = inStockDishes.map(d => `<option value="${d}">${d}</option>`).join('');
             
             if (!options) {
