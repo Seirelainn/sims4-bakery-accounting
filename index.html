@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -741,6 +741,7 @@
 
             db.salesLog.forEach(sale => {
                 sale.items.forEach(item => {
+                    if (item.name === 'Чаевые') return;
                     if (!dishStats[item.name]) {
                         dishStats[item.name] = { totalIncome: 0, totalExpense: 0, totalQty: 0, type: 'Кулинария', level: 1 };
                     }
@@ -1929,7 +1930,15 @@
 
             let saleHtml = '';
             db.salesLog.slice().reverse().forEach((s) => {
-                let rows = s.items.map(i => `<tr><td>${i.name}</td><td class="text-center w-qty-sale">${i.qty} шт</td><td class="text-end text-muted w-exp-sale">${i.expense.toFixed(2)}$</td><td class="text-end w-inc-sale">${i.income.toFixed(2)}$</td></tr>`).join('');
+                let rows = s.items.map(i => {
+                    const isTips = i.name === 'Чаевые';
+                    return `<tr>
+                        <td>${isTips ? `<em>${i.name}</em>` : i.name}</td>
+                        <td class="text-center w-qty-sale">${isTips ? '—' : i.qty + ' шт'}</td>
+                        <td class="text-end text-muted w-exp-sale">${isTips ? '—' : i.expense.toFixed(2) + '$'}</td>
+                        <td class="text-end w-inc-sale">${i.income.toFixed(2)}$</td>
+                    </tr>`;
+                }).join('');
                 saleHtml += `
                     <div class="history-card">
                         <div class="d-flex justify-content-between align-items-center mb-3">
